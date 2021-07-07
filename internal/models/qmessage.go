@@ -1,5 +1,17 @@
 package models
 
+const (
+	TSGroup       = "group"       // 群聊
+	TSConsult     = "consult"     // QQ咨询
+	TSSearch      = "search"      // 查找
+	TSFilm        = "film"        // QQ电影
+	TSHotTalk     = "hottalk"     // 热聊
+	TSVerify      = "verify"      // 验证消息
+	TSMultiChat   = "multichat"   // 多人聊天
+	TSAppointment = "appointment" // 约会
+	TSMailList    = "maillist"    // 通讯录
+)
+
 // QMessage QQ 聊天记录
 type QMessage struct {
 	ID          int    `json:"id"` // 时间戳

@@ -1,5 +1,11 @@
 package models
 
+import (
+	"context"
+	"database/sql"
+	"github.com/pkg/errors"
+)
+
 const (
 	TSGroup       = "group"       // 群聊
 	TSConsult     = "consult"     // QQ咨询
@@ -31,4 +37,22 @@ type QMessage struct {
 
 func (m QMessage) TableName() string {
 	return "q_message"
+}
+
+func (m *QMessage) Insert(ctx context.Context, tx *sql.Tx) error {
+	query := "insert into `q_message` (`time`,`self_id`,`post_type`,`message_type`,`sub_type`,`temp_source`,`message_id`,`user_id`,`message`,`raw_message`,`font`) values(?,?,?,?,?,?,?,?,?,?,?)"
+	_, err := tx.ExecContext(ctx, query, m.Time, m.SelfID, m.PostType, m.MessageType, m.SubType, m.TempSource, m.MessageID, m.UserID, m.Message, m.RawMessage, m.Font)
+	if err != nil {
+		return errors.Wrap(err, "insert q_message")
+	}
+	return nil
+}
+
+func (m *QMessage) SetReply(ctx context.Context, tx *sql.Tx) error {
+	query := "update `q_message` set `reply` = ? where `message_id` = ?"
+	_, err := tx.ExecContext(ctx, query, m.Reply, m.MessageID)
+	if err != nil {
+		return errors.Wrap(err, "update reply")
+	}
+	return nil
 }

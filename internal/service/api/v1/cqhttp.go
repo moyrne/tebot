@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/moyrne/tebot/internal/analyze"
+	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/logs"
 	"net/http"
 )
@@ -34,6 +35,17 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 	if params.PostType != PTMessage {
 		// 忽略
 		logs.Error("unknown params", "post_type", params.PostType)
+		return
+	}
+
+	tx, err := database.DB.Begin()
+	if err != nil {
+		// TODO defer rollback
+		return
+	}
+
+	if err := params.ToModel().Insert(c.Request.Context(), tx); err != nil {
+		// TODO defer rollback
 		return
 	}
 

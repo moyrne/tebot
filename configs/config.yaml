@@ -1,0 +1,6 @@
+DB:
+  Host: "host"
+  Port: 5432
+  User: "user"
+  Password: "password"
+  DBName: "dbname"

@@ -3,6 +3,7 @@ package logs
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"log"
 	"os"
@@ -17,8 +18,16 @@ func Init(out ...io.Writer) {
 	if len(out) != 0 {
 		writer = io.MultiWriter(os.Stdout, out[0])
 	}
-	// TODO 输出到文件
+	// 输出到文件
 	logs.SetOutput(writer)
+}
+
+func FileWriter() (*os.File, error) {
+	path := viper.GetString("Log.Filename")
+	if path == "" {
+		path = "logs/default.log"
+	}
+	return os.OpenFile(path, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
 }
 
 type LogValue struct {

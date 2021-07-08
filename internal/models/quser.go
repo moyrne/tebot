@@ -8,3 +8,7 @@ type QUser struct {
 	Sex      string `json:"sex"`
 	Age      int    `json:"age"`
 }
+
+func (u QUser) TableName() string {
+	return "q_user"
+}

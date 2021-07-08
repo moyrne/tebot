@@ -1,6 +1,9 @@
 package v1
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+)
 
 type CqHTTP struct{}
 
@@ -18,6 +21,8 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 		// TODO log error
 		return
 	}
+
+	fmt.Println("[params]", params)
 
 	switch params.SubType {
 	case STFriend:

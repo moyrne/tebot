@@ -7,10 +7,11 @@ type QMessage struct {
 	Time        int    `json:"time"`         // 时间戳
 	SelfID      int    `json:"self_id"`      // 用户ID
 	PostType    string `json:"post_type"`    // 上报类型	message
-	MessageType string `json:"message_type"` // 消息类型	private
-	SubType     string `json:"sub_type"`     // 消息子类型 friend,group,group_self,other
+	MessageType string `json:"message_type"` // 消息类型	private, group
+	SubType     string `json:"sub_type"`     // 消息子类型 [private]friend,group,group_self,other; [private]normal,anonymous,notice
 	TempSource  int    `json:"temp_source"`  // 临时会话来源
 	MessageID   int    `json:"message_id"`   // 消息 ID
+	GroupID     int    `json:"group_id"`     // 群ID
 	UserID      int    `json:"user_id"`      // 发送者 QQ 号
 	Message     string `json:"message"`      // 消息内容
 	RawMessage  string `json:"raw_message"`  // 原始消息内容
@@ -54,4 +55,14 @@ func (s TempSource) String() string {
 	default:
 		return "UnKnow"
 	}
+}
+
+type Reply struct {
+	Reply       string `json:"reply"`                  // 要回复的内容
+	AutoEscape  bool   `json:"auto_escape,omitempty"`  //	消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 reply 字段是字符串时有效
+	ATSender    bool   `json:"at_sender,omitempty"`    //	是否要在回复开头 at 发送者 ( 自动添加 ) , 发送者是匿名用户时无效	at 发送者
+	Delete      bool   `json:"delete,omitempty"`       //	撤回该条消息	不撤回
+	Kick        bool   `json:"kick,omitempty"`         //	把发送者踢出群组 ( 需要登录号权限足够 ) , 不拒绝此人后续加群请求, 发送者是匿名用户时无效	不踢
+	Ban         bool   `json:"ban,omitempty"`          //	把发送者禁言 ban_duration 指定时长, 对匿名用户也有效	不禁言
+	BanDuration int    `json:"ban_duration,omitempty"` //	禁言时长	30 分钟
 }

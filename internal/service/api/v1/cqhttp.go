@@ -74,7 +74,6 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 		logs.Error("insert cqhttp params failed", "error", err)
 	}
 	c.JSON(http.StatusOK, reply)
-	return
 }
 
 func (h CqHTTP) private(c *gin.Context, params QMessage) (Reply, error) {

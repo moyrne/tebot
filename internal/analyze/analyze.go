@@ -62,5 +62,5 @@ func rangeDo(ctx context.Context, functions []Menu, params Params, match func(ms
 			return menu.Fn(ctx, params)
 		}
 	}
-	return "", errors.Wrap(ErrNotMatch, "range do")
+	return "", errors.WithStack(ErrNotMatch)
 }

@@ -19,9 +19,9 @@ type QMessage struct {
 	Sender      QSender    `json:"sender"`       // 发送人信息
 }
 
-func (m QMessage) ToModel() *models.QMessage {
+func (m QMessage) Model() *models.QMessage {
 	return &models.QMessage{
-		ID:          m.ID,
+		ID:          int64(m.ID),
 		Time:        m.Time,
 		SelfID:      m.SelfID,
 		PostType:    m.PostType,

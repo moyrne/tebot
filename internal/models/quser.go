@@ -2,7 +2,7 @@ package models
 
 // QUser QQ User
 type QUser struct {
-	ID       int    `json:"id"`
+	ID       int64  `json:"id"`
 	QUID     int    `json:"quid"`
 	Nickname string `json:"nickname"`
 	Sex      string `json:"sex"`

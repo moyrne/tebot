@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"github.com/moyrne/tebot/internal/database"
 	"github.com/pkg/errors"
 )
 
@@ -20,7 +21,7 @@ const (
 
 // QMessage QQ 聊天记录
 type QMessage struct {
-	ID          int    `json:"id"` // 时间戳
+	ID          int64  `json:"id"` // 时间戳
 	Time        int    `json:"time"`
 	SelfID      int    `json:"self_id"`
 	PostType    string `json:"post_type"`    // 上报类型	message
@@ -41,18 +42,29 @@ func (m QMessage) TableName() string {
 
 func (m *QMessage) Insert(ctx context.Context, tx *sql.Tx) error {
 	query := "insert into `q_message` (`time`,`self_id`,`post_type`,`message_type`,`sub_type`,`temp_source`,`message_id`,`user_id`,`message`,`raw_message`,`font`) values(?,?,?,?,?,?,?,?,?,?,?)"
-	_, err := tx.ExecContext(ctx, query, m.Time, m.SelfID, m.PostType, m.MessageType, m.SubType, m.TempSource, m.MessageID, m.UserID, m.Message, m.RawMessage, m.Font)
+	r, err := tx.ExecContext(ctx, query, m.Time, m.SelfID, m.PostType, m.MessageType, m.SubType, m.TempSource, m.MessageID, m.UserID, m.Message, m.RawMessage, m.Font)
 	if err != nil {
-		return errors.Wrap(err, "insert q_message")
+		return errors.WithStack(err)
+	}
+	m.ID, err = r.LastInsertId()
+	if err != nil {
+		return errors.WithStack(err)
 	}
 	return nil
 }
 
 func (m *QMessage) SetReply(ctx context.Context, tx *sql.Tx) error {
 	query := "update `q_message` set `reply` = ? where `message_id` = ?"
-	_, err := tx.ExecContext(ctx, query, m.Reply, m.MessageID)
+	r, err := tx.ExecContext(ctx, query, m.Reply, m.MessageID)
 	if err != nil {
-		return errors.Wrap(err, "update reply")
+		return errors.WithStack(err)
+	}
+	affected, err := r.RowsAffected()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	if affected == 0 {
+		return errors.WithStack(database.ErrRowsAffectedZero)
 	}
 	return nil
 }

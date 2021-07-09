@@ -18,7 +18,7 @@ func ConnectPG() (err error) {
 	}
 	DB, err = sqlx.Connect("postgres", dsn)
 	if err != nil {
-		return errors.Wrap(err, "sqlx.Connect")
+		return errors.WithStack(err)
 	}
 	DB.SetMaxIdleConns(5)
 	DB.SetMaxOpenConns(30)
@@ -36,7 +36,7 @@ type PgDSN struct {
 func loadDSN() (string, error) {
 	var dsn PgDSN
 	if err := viper.UnmarshalKey("DB", &dsn); err != nil {
-		return "", errors.Wrap(err, "unmarshal key DB")
+		return "", errors.WithStack(err)
 	}
 	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		dsn.Host,

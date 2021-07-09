@@ -2,7 +2,7 @@ package models
 
 // QGroup QQ Group
 type QGroup struct {
-	ID   int    `json:"id"`
+	ID   int64  `json:"id"`
 	QGID int    `json:"qgid"`
 	Name string `json:"name"`
 }

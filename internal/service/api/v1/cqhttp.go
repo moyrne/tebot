@@ -64,7 +64,7 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 			return
 		}
 	default:
-		// TODO log error
+		// log error
 		logs.Error("unsupported message_type", "type", params.MessageType)
 		return
 	}

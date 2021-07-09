@@ -26,6 +26,14 @@ func FileWriter() (*os.File, error) {
 	path := viper.GetString("Log.Filename")
 	if path == "" {
 		path = "logs/default.log"
+		d, e := os.Open("logs")
+		if e != nil {
+			if err := os.MkdirAll("logs", 0666); err != nil {
+				return nil, err
+			}
+		} else {
+			d.Close()
+		}
 	}
 	return os.OpenFile(path, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
 }

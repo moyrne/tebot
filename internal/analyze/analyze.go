@@ -20,6 +20,9 @@ var (
 	EqualFunctions = []Menu{
 		{Name: "签到", Fn: SignIn},
 	}
+	PrefixFunctions = []Menu{
+		{Name: "绑定位置", Fn: BindArea},
+	}
 )
 
 func Analyze(ctx context.Context, params Params) (string, error) {
@@ -33,7 +36,7 @@ func Analyze(ctx context.Context, params Params) (string, error) {
 		return "", err
 	}
 	// TODO 2. 包含
-	resp, err = rangeDo(ctx, EqualFunctions, params, func(msg, name string) bool {
+	resp, err = rangeDo(ctx, PrefixFunctions, params, func(msg, name string) bool {
 		return strings.HasPrefix(strings.ReplaceAll(msg, " ", ""), name)
 	})
 	if err == nil {

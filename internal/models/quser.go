@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/jmoiron/sqlx"
+	"github.com/moyrne/tebot/internal/database"
 	"github.com/pkg/errors"
 )
 
@@ -15,14 +16,24 @@ type QUser struct {
 	Sex      string `json:"sex"`
 	Age      int    `json:"age"`
 
-	BindArea string `json:"bind_area"` // 所在地
-	Mode     string `json:"mode"`      // 人设模式
+	BindArea sql.NullString `json:"bind_area" db:"bind_area"` // 所在地
+	Mode     sql.NullString `json:"mode"`                     // 人设模式
 
 	Ban bool `json:"ban"` // 被禁
 }
 
 func (u QUser) TableName() string {
 	return "q_user"
+}
+
+func GetQUserByQUID(ctx context.Context, tx *sqlx.Tx, quid int) (*QUser, error) {
+	var user QUser
+	query := `select * from q_user where quid = $1`
+	err := tx.GetContext(ctx, &user, query, quid)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return &user, nil
 }
 
 func (u *QUser) GetOrInsert(ctx context.Context, tx *sqlx.Tx) error {
@@ -36,4 +47,20 @@ func (u *QUser) GetOrInsert(ctx context.Context, tx *sqlx.Tx) error {
 	}
 	query = `insert into q_user (quid,nickname,sex,age) values ($1,$2,$3,$4) returning id`
 	return errors.WithStack(tx.GetContext(ctx, &u.ID, query, u.QUID, u.Nickname, u.Sex, u.Age))
+}
+
+func UpdateArea(ctx context.Context, tx *sqlx.Tx, quid int, area string) error {
+	query := `update q_user set bind_area = $1 where quid = $2`
+	result, err := tx.ExecContext(ctx, query, area, quid)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	if affected == 0 {
+		return errors.WithStack(database.ErrRowsAffectedZero)
+	}
+	return nil
 }

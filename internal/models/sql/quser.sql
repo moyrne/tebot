@@ -7,6 +7,8 @@ create table q_user
     nickname varchar,
     sex      varchar,
     age      integer,
+    bind_area varchar,
+    mode      integer,
     ban      boolean default false not null
 );
 

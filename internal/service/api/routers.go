@@ -6,6 +6,7 @@ import (
 )
 
 func NewRouter() *gin.Engine {
+	gin.SetMode(gin.DebugMode)
 	e := gin.Default()
 	var h v1.CqHTTP
 	e.POST("/", h.HTTP)

@@ -1,6 +1,6 @@
 DB:
-  Host: "host"
+  Host: "localhost"
   Port: 5432
-  User: "user"
-  Password: "password"
-  DBName: "dbname"
+  User: "postgres"
+  Password: "postgres"
+  DBName: "tebot"

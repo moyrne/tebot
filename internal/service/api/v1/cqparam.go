@@ -3,20 +3,20 @@ package v1
 import "github.com/moyrne/tebot/internal/models"
 
 type QMessage struct {
-	ID          int        `json:"id"`
-	Time        int        `json:"time"`         // 时间戳
-	SelfID      int        `json:"self_id"`      // 用户ID
-	PostType    string     `json:"post_type"`    // 上报类型	meta_event, message
-	MessageType string     `json:"message_type"` // 消息类型	private, group
-	SubType     string     `json:"sub_type"`     // 消息子类型 [private]private, group, group_self, other; [private] normal, anonymous, notice
-	TempSource  TempSource `json:"temp_source"`  // 临时会话来源
-	MessageID   int        `json:"message_id"`   // 消息 ID
-	GroupID     int        `json:"group_id"`     // 群ID
-	UserID      int        `json:"user_id"`      // 发送者 QQ 号
-	Message     string     `json:"message"`      // 消息内容
-	RawMessage  string     `json:"raw_message"`  // 原始消息内容
-	Font        int        `json:"font"`         // 字体
-	Sender      QSender    `json:"sender"`       // 发送人信息
+	ID          int         `json:"id"`
+	Time        int         `json:"time"`         // 时间戳
+	SelfID      int         `json:"self_id"`      // 用户ID
+	PostType    string      `json:"post_type"`    // 上报类型	meta_event, message
+	MessageType string      `json:"message_type"` // 消息类型	private, group
+	SubType     string      `json:"sub_type"`     // 消息子类型 [private]private, group, group_self, other; [private] normal, anonymous, notice
+	TempSource  *TempSource `json:"temp_source"`  // 临时会话来源
+	MessageID   int         `json:"message_id"`   // 消息 ID
+	GroupID     int         `json:"group_id"`     // 群ID
+	UserID      int         `json:"user_id"`      // 发送者 QQ 号
+	Message     string      `json:"message"`      // 消息内容
+	RawMessage  string      `json:"raw_message"`  // 原始消息内容
+	Font        int         `json:"font"`         // 字体
+	Sender      QSender     `json:"sender"`       // 发送人信息
 }
 
 func (m QMessage) Model() *models.QMessage {
@@ -33,6 +33,12 @@ func (m QMessage) Model() *models.QMessage {
 		Message:     m.Message,
 		RawMessage:  m.RawMessage,
 		Font:        m.Font,
+		QUser: &models.QUser{
+			QUID:     m.Sender.UserID,
+			Nickname: m.Sender.Nickname,
+			Sex:      m.Sender.Sex,
+			Age:      m.Sender.Age,
+		},
 	}
 }
 
@@ -57,8 +63,11 @@ const (
 	TSMailList    = 9 // 通讯录
 )
 
-func (s TempSource) String() string {
-	switch s {
+func (s *TempSource) String() string {
+	if s == nil {
+		return ""
+	}
+	switch *s {
 	case TSGroup:
 		return models.TSGroup // 群聊
 	case TSConsult:

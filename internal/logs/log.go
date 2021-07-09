@@ -77,7 +77,7 @@ func Log(logValue *LogValue, kv ...interface{}) {
 			logKVV(logValue, kv)
 			return
 		}
-		logValue.Detail[key] = fmt.Sprintf("%v", kv[i+1])
+		logValue.Detail[key] = fmt.Sprintf("%+v", kv[i+1])
 	}
 	marshalLog(logValue)
 }

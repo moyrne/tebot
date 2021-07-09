@@ -2,7 +2,7 @@ package models
 
 import (
 	"context"
-	"database/sql"
+	"github.com/jmoiron/sqlx"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/pkg/errors"
 )
@@ -29,33 +29,31 @@ type QMessage struct {
 	SubType     string `json:"sub_type"`     // 消息子类型 friend,group,group_self,other
 	TempSource  string `json:"temp_source"`  // 临时会话来源
 	MessageID   int    `json:"message_id"`   // 消息ID
+	GroupID     int    `json:"group_id"`     // 群ID
 	UserID      int    `json:"user_id"`      // 发送者 QQ 号
 	Message     string `json:"message"`      // 消息内容
 	RawMessage  string `json:"raw_message"`  // 原始消息内容
 	Font        int    `json:"font"`         // 字体
 	Reply       string `json:"reply"`        // 回复
+
+	QUser *QUser `json:"q_user"` // User 信息
 }
 
 func (m QMessage) TableName() string {
 	return "q_message"
 }
 
-func (m *QMessage) Insert(ctx context.Context, tx *sql.Tx) error {
-	query := "insert into `q_message` (`time`,`self_id`,`post_type`,`message_type`,`sub_type`,`temp_source`,`message_id`,`user_id`,`message`,`raw_message`,`font`) values(?,?,?,?,?,?,?,?,?,?,?)"
-	r, err := tx.ExecContext(ctx, query, m.Time, m.SelfID, m.PostType, m.MessageType, m.SubType, m.TempSource, m.MessageID, m.UserID, m.Message, m.RawMessage, m.Font)
-	if err != nil {
-		return errors.WithStack(err)
+func (m *QMessage) Insert(ctx context.Context, tx *sqlx.Tx) error {
+	if err := m.QUser.GetOrInsert(ctx, tx); err != nil {
+		return err
 	}
-	m.ID, err = r.LastInsertId()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
+	query := `insert into q_message (time,self_id,post_type,message_type,sub_type,temp_source,message_id,user_id,message,raw_message,font) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) returning id`
+	return errors.WithStack(tx.GetContext(ctx, &m.ID, query, m.Time, m.SelfID, m.PostType, m.MessageType, m.SubType, m.TempSource, m.MessageID, m.UserID, m.Message, m.RawMessage, m.Font))
 }
 
-func (m *QMessage) SetReply(ctx context.Context, tx *sql.Tx) error {
-	query := "update `q_message` set `reply` = ? where `message_id` = ?"
-	r, err := tx.ExecContext(ctx, query, m.Reply, m.MessageID)
+func (m *QMessage) SetReply(ctx context.Context, tx *sqlx.Tx) error {
+	query := `update q_message set reply = $1 where id = $2`
+	r, err := tx.ExecContext(ctx, query, m.Reply, m.ID)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -64,7 +62,7 @@ func (m *QMessage) SetReply(ctx context.Context, tx *sql.Tx) error {
 		return errors.WithStack(err)
 	}
 	if affected == 0 {
-		return errors.WithStack(database.ErrRowsAffectedZero)
+		return errors.WithStack(errors.Wrapf(database.ErrRowsAffectedZero, "m: %#v", *m))
 	}
 	return nil
 }

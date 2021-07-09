@@ -2,21 +2,33 @@ package database
 
 import (
 	"context"
-	"database/sql"
+	"fmt"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
-var ErrRowsAffectedZero = errors.New("rows affected is zero")
+var (
+	ErrRowsAffectedZero = errors.New("rows affected is zero")
+)
 
-func NewTransaction(ctx context.Context, fn func(ctx context.Context, tx *sql.Tx) error) error {
-	// TODO 考虑是否 recover
-	tx, err := DB.DB.Begin()
+func NewTransaction(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) (err error) {
+	// recover
+	defer func() {
+		if r := recover(); r != nil {
+			var ok bool
+			err, ok = r.(error)
+			if !ok {
+				err = fmt.Errorf("%v", r)
+			}
+		}
+	}()
+	tx, err := DB.Beginx()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	err = fn(ctx, tx)
 	if err == nil {
-		return nil
+		return errors.WithStack(tx.Commit())
 	}
 	if err := tx.Rollback(); err != nil {
 		return errors.WithStack(err)

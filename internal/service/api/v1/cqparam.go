@@ -1,6 +1,9 @@
 package v1
 
-import "github.com/moyrne/tebot/internal/models"
+import (
+	"database/sql"
+	"github.com/moyrne/tebot/internal/models"
+)
 
 type QMessage struct {
 	ID          int         `json:"id"`
@@ -11,7 +14,7 @@ type QMessage struct {
 	SubType     string      `json:"sub_type"`     // 消息子类型 [private]private, group, group_self, other; [private] normal, anonymous, notice
 	TempSource  *TempSource `json:"temp_source"`  // 临时会话来源
 	MessageID   int         `json:"message_id"`   // 消息 ID
-	GroupID     int         `json:"group_id"`     // 群ID
+	GroupID     int64       `json:"group_id"`     // 群ID
 	UserID      int         `json:"user_id"`      // 发送者 QQ 号
 	Message     string      `json:"message"`      // 消息内容
 	RawMessage  string      `json:"raw_message"`  // 原始消息内容
@@ -29,11 +32,13 @@ func (m QMessage) Model() *models.QMessage {
 		SubType:     m.SubType,
 		TempSource:  m.TempSource.String(),
 		MessageID:   m.MessageID,
-		GroupID:     m.GroupID,
-		UserID:      m.UserID,
-		Message:     m.Message,
-		RawMessage:  m.RawMessage,
-		Font:        m.Font,
+		GroupID: sql.NullInt64{
+			Int64: m.GroupID,
+		},
+		UserID:     m.UserID,
+		Message:    m.Message,
+		RawMessage: m.RawMessage,
+		Font:       m.Font,
 		QUser: &models.QUser{
 			QUID:     m.Sender.UserID,
 			Nickname: m.Sender.Nickname,

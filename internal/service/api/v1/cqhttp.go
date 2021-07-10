@@ -28,8 +28,6 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 		return
 	}
 
-	// TODO 限流 防止封号 (20sCD)
-
 	if params.PostType == PTEvent {
 		// 忽略 心跳检测
 		return

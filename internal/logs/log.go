@@ -23,7 +23,7 @@ func Init(out ...io.Writer) {
 }
 
 func FileWriter() (*os.File, error) {
-	path := viper.GetString("Log.Filename")
+	path := viper.GetString("logValue.Filename")
 	if path == "" {
 		path = "logs/default.log"
 		d, e := os.Open("logs")
@@ -49,52 +49,54 @@ const (
 	LevelInfo  = "info"
 	LevelDebug = "debug"
 	LevelError = "error"
+	LevelPanic = "panic"
 )
 
 func Info(v string, kv ...interface{}) {
-	Log(&LogValue{Level: LevelInfo, Value: v}, kv...)
+	logs.Println(logValue(&LogValue{Level: LevelInfo, Value: v}, kv...))
 }
 
 func Debug(v string, kv ...interface{}) {
-	Log(&LogValue{Level: LevelDebug, Value: v}, kv...)
+	logs.Println(logValue(&LogValue{Level: LevelDebug, Value: v}, kv...))
 }
 
 func Error(v string, kv ...interface{}) {
-	Log(&LogValue{Level: LevelError, Value: v}, kv...)
+	logs.Println(logValue(&LogValue{Level: LevelError, Value: v}, kv...))
 }
 
-func Log(logValue *LogValue, kv ...interface{}) {
+func Panic(v string, kv ...interface{}) {
+	logs.Panicln(logValue(&LogValue{Level: LevelPanic, Value: v}, kv...))
+}
+
+func logValue(value *LogValue, kv ...interface{}) string {
 	kvl := len(kv)
 	if kvl%2 != 0 {
-		logKVV(logValue, kv)
-		return
+		return logKVV(value, kv)
 	}
-	logValue.Time = time.Now()
-	logValue.Detail = map[string]interface{}{}
+	value.Time = time.Now()
+	value.Detail = map[string]interface{}{}
 	for i := 0; i < kvl-1; i += 2 {
 		key, ok := kv[i].(string)
 		if !ok {
-			logKVV(logValue, kv)
-			return
+			return logKVV(value, kv)
 		}
-		logValue.Detail[key] = fmt.Sprintf("%+v", kv[i+1])
+		value.Detail[key] = fmt.Sprintf("%+v", kv[i+1])
 	}
-	marshalLog(logValue)
+	return marshalLog(value)
 }
 
-func logKVV(logValue *LogValue, kv ...interface{}) {
-	logValue.Detail = map[string]interface{}{
+func logKVV(value *LogValue, kv ...interface{}) string {
+	value.Detail = map[string]interface{}{
 		"kvv": kv,
 	}
-	marshalLog(logValue)
+	return marshalLog(value)
 }
 
-func marshalLog(logValue *LogValue) {
+func marshalLog(logValue *LogValue) string {
 	value, err := json.Marshal(logValue)
 	if err != nil {
 		logs.Printf("marshalLog error %v\n", err)
-		return
+		return err.Error()
 	}
-
-	logs.Println(string(value))
+	return string(value)
 }

@@ -62,6 +62,10 @@ var ErrNotMatch = errors.New("not match")
 func rangeDo(ctx context.Context, functions []Menu, params Params, match func(msg, name string) bool) (string, error) {
 	for _, menu := range functions {
 		if match(params.Message, menu.Name) {
+			// TODO 限流 防止封号 (5sCD)
+			if err := rateLimiter.Rate(ctx, menu.Name, params.QUID); err != nil {
+				return "", err
+			}
 			return menu.Fn(ctx, params)
 		}
 	}

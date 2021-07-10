@@ -5,6 +5,8 @@ go 1.16
 require (
 	github.com/agiledragon/gomonkey v2.0.2+incompatible
 	github.com/gin-gonic/gin v1.7.2
+	github.com/go-redis/redis/v8 v8.11.0
+	github.com/go-redis/redis_rate/v9 v9.1.1
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.2.0
 	github.com/moyrne/weather v0.1.1

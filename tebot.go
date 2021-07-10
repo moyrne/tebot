@@ -21,10 +21,13 @@ func main() {
 	defer writer.Close()
 	logs.Init(writer)
 	if err := database.ConnectPG(); err != nil {
-		log.Fatalln("db connect error", err)
+		logs.Panic("db connect", "error", err)
+	}
+	if err := database.ConnectRedis(); err != nil {
+		logs.Panic("redis connect", "error", err)
 	}
 	r := api.NewRouter()
 	if err := r.Run("127.0.0.1:7771"); err != nil {
-		logs.Error("service run", "error", err)
+		logs.Panic("service run", "error", err)
 	}
 }

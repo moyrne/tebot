@@ -33,8 +33,8 @@ func (s *QSignIn) Insert(ctx context.Context, tx *sqlx.Tx) error {
 }
 
 func (s *QSignIn) GetQSignInByQUID(ctx context.Context, tx *sqlx.Tx) error {
-	query := `select * from q_sign_in where quid = $1 and create_at > $2`
-	err := tx.GetContext(ctx, s, query, s.QUID, time.Now())
+	query := `select * from q_sign_in where quid = $1 and day>= $2`
+	err := tx.GetContext(ctx, s, query, s.QUID, time.Now().Format("2006-01-02"))
 	if err == nil {
 		return errors.WithStack(ErrAlreadySignIn)
 	}

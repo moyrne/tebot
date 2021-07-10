@@ -20,8 +20,9 @@ func InitLimiter() {
 
 var ErrRateLimit = errors.New("rate remaining is zero")
 
+// Rate TODO 限流 防止封号 (3t/min CD)
 func (l *Limiter) Rate(ctx context.Context, name string, quid int) error {
-	result, err := l.limiter.Allow(ctx, "analyze_"+name+"_"+strconv.Itoa(quid), redis_rate.PerMinute(10))
+	result, err := l.limiter.Allow(ctx, "analyze_"+name+"_"+strconv.Itoa(quid), redis_rate.PerMinute(3))
 	if err != nil {
 		return errors.WithStack(err)
 	}

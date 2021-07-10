@@ -50,7 +50,8 @@ func Analyze(ctx context.Context, params Params) (string, error) {
 
 	// TODO 匹配简单回复
 
-	return "", nil
+	// 未匹配到
+	return "", errors.WithStack(ErrNotMatch)
 }
 
 func equal(s, v string) bool {
@@ -62,7 +63,6 @@ var ErrNotMatch = errors.New("not match")
 func rangeDo(ctx context.Context, functions []Menu, params Params, match func(msg, name string) bool) (string, error) {
 	for _, menu := range functions {
 		if match(params.Message, menu.Name) {
-			// TODO 限流 防止封号 (5sCD)
 			if err := rateLimiter.Rate(ctx, menu.Name, params.QUID); err != nil {
 				return "", err
 			}

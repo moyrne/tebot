@@ -8,6 +8,7 @@ import (
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/logs"
 	"github.com/moyrne/tebot/internal/models"
+	"github.com/pkg/errors"
 	"net/http"
 )
 
@@ -57,19 +58,19 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 	switch params.MessageType {
 	case MTPrivate:
 		reply, err = h.private(c, qmModel)
-		if err != nil {
-			logs.Info("private", "error", err)
-			return
-		}
 	case MTGroup:
 		reply, err = h.group(c, qmModel)
-		if err != nil {
-			logs.Info("group", "error", err)
-			return
-		}
 	default:
 		// log error
 		logs.Error("unsupported message_type", "type", params.MessageType)
+		return
+	}
+
+	if errors.Is(err, analyze.ErrNotMatch) {
+		return
+	}
+	if err != nil {
+		logs.Info("get reply", "error", err)
 		return
 	}
 
@@ -84,10 +85,10 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 
 func (h CqHTTP) private(c *gin.Context, params *models.QMessage) (Reply, error) {
 	reply, err := analyze.Analyze(c.Request.Context(), analyze.Params{QUID: params.UserID, Message: params.Message})
-	if err != nil {
-		return Reply{}, err
+	if err == nil {
+		return Reply{Reply: reply}, nil
 	}
-	return Reply{Reply: reply}, nil
+	return Reply{}, err
 }
 
 func (h CqHTTP) group(c *gin.Context, params *models.QMessage) (Reply, error) {

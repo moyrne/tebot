@@ -23,6 +23,10 @@ func SignIn(ctx context.Context, params Params) (string, error) {
 	}); err != nil {
 		return "", err
 	}
+	if area == "" {
+		return "[未绑定位置]\n" +
+			"例如: 绑定位置 深圳", nil
+	}
 	data, err := weComCn.Get(area)
 	if err != nil {
 		return "", err

@@ -4,3 +4,5 @@ DB:
   User: "postgres"
   Password: "postgres"
   DBName: "tebot"
+Redis:
+  Host: "localhost"

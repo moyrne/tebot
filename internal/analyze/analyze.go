@@ -18,6 +18,7 @@ type Menu struct {
 
 var (
 	EqualFunctions = []Menu{
+		{Name: "menu", Fn: PrintMenu},
 		{Name: "签到", Fn: SignIn},
 	}
 	PrefixFunctions = []Menu{

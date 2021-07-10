@@ -22,7 +22,7 @@ func (g QGroup) TableName() string {
 func GetQGroupByQGID(ctx context.Context, tx *sqlx.Tx, qgid sql.NullInt64) (*QGroup, error) {
 	var group QGroup
 	query := `select * from q_group where qgid = $1`
-	if err := tx.GetContext(ctx, &group, query, qgid); err != nil {
+	if err := tx.GetContext(ctx, &group, query, qgid.Int64); err != nil {
 		return nil, errors.WithStack(err)
 	}
 	return &group, nil

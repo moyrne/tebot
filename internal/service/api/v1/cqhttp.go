@@ -11,6 +11,7 @@ import (
 	"github.com/moyrne/tebot/internal/models"
 	"github.com/pkg/errors"
 	"net/http"
+	"time"
 )
 
 type CqHTTP struct{}
@@ -86,6 +87,7 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 		logs.Error("reply", "error", err)
 	}
 	logs.Info("reply", "content", string(r))
+	time.Sleep(time.Second)
 	c.JSON(http.StatusOK, reply)
 }
 

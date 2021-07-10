@@ -9,10 +9,10 @@ import (
 )
 
 type QSignIn struct {
-	ID       int64
-	QUID     int
-	Day      string
-	CreateAt time.Time
+	ID       int64     `json:"id"`
+	QUID     int       `json:"quid"`
+	Day      string    `json:"day"`
+	CreateAt time.Time `json:"create_at" db:"create_at"`
 }
 
 func (s QSignIn) TableName() string {

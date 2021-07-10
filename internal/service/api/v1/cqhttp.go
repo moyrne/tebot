@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"github.com/moyrne/tebot/internal/analyze"
@@ -82,12 +81,9 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 	}); err != nil {
 		logs.Error("update cqhttp params failed", "error", err)
 	}
-	r, err := json.Marshal(reply)
-	if err != nil {
-		logs.Error("reply", "error", err)
-	}
-	logs.Info("reply", "content", string(r))
-	time.Sleep(time.Second)
+	// 等待3秒 回复
+	time.Sleep(time.Second * 3)
+	logs.Info("reply", "content", reply)
 	c.JSON(http.StatusOK, reply)
 }
 

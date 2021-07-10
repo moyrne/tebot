@@ -26,5 +26,5 @@ func BindArea(ctx context.Context, params Params) (string, error) {
 	}); err != nil {
 		return "", err
 	}
-	return "绑定成功 :" + area, nil
+	return "绑定成功：" + area, nil
 }

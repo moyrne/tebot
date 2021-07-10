@@ -29,6 +29,7 @@ func (m QMessage) Model() *models.QMessage {
 		SubType:     m.SubType,
 		TempSource:  m.TempSource.String(),
 		MessageID:   m.MessageID,
+		GroupID:     m.GroupID,
 		UserID:      m.UserID,
 		Message:     m.Message,
 		RawMessage:  m.RawMessage,

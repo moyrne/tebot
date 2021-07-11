@@ -5,8 +5,7 @@ create table q_reply
             primary key,
     quid   bigint,
     msg    varchar,
-    weight integer,
-    reply  character varying[]
+    reply  json
 );
 
 alter table q_reply

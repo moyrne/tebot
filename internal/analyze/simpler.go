@@ -21,9 +21,8 @@ func PrintMenu(_ context.Context, _ Params) (string, error) {
 }
 
 type QReplyRow struct {
-	Msg    string   `json:"msg"`
-	Weight int      `json:"weight"`
-	Reply  []string `json:"reply"`
+	Msg   string   `json:"msg"`
+	Reply []string `json:"reply"`
 }
 
 var (
@@ -37,26 +36,31 @@ func SimpleReply(ctx context.Context, params Params) (string, error) {
 	defer simpleMu.RUnlock()
 	custom, ok := simpleReply[params.QUID]
 	if ok {
-		for msg, reply := range custom {
-			if strings.Contains(params.Message, msg) {
-				if err := rateLimiter.Rate(ctx, "simple", params.QUID); err != nil {
-					return "", err
-				}
-				return randReply(reply.Reply), nil
-			}
+		resp, err := rangeSimpler(ctx, custom, params, func(s, v string) bool {
+			return strings.Contains(s, v)
+		})
+		if err == nil {
+			return resp, nil
+		}
+		if !errors.Is(err, ErrNotMatch) {
+			return "", err
 		}
 	}
 
-	def := simpleReply[0]
-	for msg, reply := range def {
-		if strings.Contains(params.Message, msg) {
+	return rangeSimpler(ctx, simpleReply[0], params, func(s, v string) bool {
+		return strings.Contains(s, v)
+	})
+}
+
+func rangeSimpler(ctx context.Context, replies map[string]QReplyRow, params Params, match func(s, v string) bool) (string, error) {
+	for msg, reply := range replies {
+		if match(params.Message, msg) {
 			if err := rateLimiter.Rate(ctx, "simple", params.QUID); err != nil {
 				return "", err
 			}
 			return randReply(reply.Reply), nil
 		}
 	}
-
 	return "", errors.WithStack(ErrNotMatch)
 }
 
@@ -101,9 +105,8 @@ func delaySync(ctx context.Context) {
 			continue
 		}
 		simpleReply[reply.QUID][reply.Msg] = QReplyRow{
-			Msg:    reply.Msg,
-			Weight: reply.Weight,
-			Reply:  r,
+			Msg:   reply.Msg,
+			Reply: r,
 		}
 	}
 }

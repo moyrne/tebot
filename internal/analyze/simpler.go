@@ -39,8 +39,7 @@ func SimpleReply(_ context.Context, params Params) (string, error) {
 	if ok {
 		for msg, reply := range custom {
 			if strings.Contains(params.Message, msg) {
-				rd := rand.Intn(len(reply.Reply) - 1)
-				return reply.Reply[rd+1], nil
+				return randReply(reply.Reply), nil
 			}
 		}
 	}
@@ -48,16 +47,21 @@ func SimpleReply(_ context.Context, params Params) (string, error) {
 	def := simpleReply[0]
 	for msg, reply := range def {
 		if strings.Contains(params.Message, msg) {
-			rd := rand.Intn(len(reply.Reply) - 1)
-			return reply.Reply[rd+1], nil
+			return randReply(reply.Reply), nil
 		}
 	}
 
 	return "", errors.WithStack(ErrNotMatch)
 }
 
+func randReply(replies []string) string {
+	rd := rand.Intn(len(replies))
+	return replies[rd]
+}
+
 // SyncReply 同步 回复
 func SyncReply(ctx context.Context) {
+	rand.Seed(time.Now().UnixNano())
 	go func() {
 		for {
 			delaySync(ctx)
@@ -79,8 +83,8 @@ func delaySync(ctx context.Context) {
 
 	simpleMu.Lock()
 	defer simpleMu.Unlock()
-	defer logs.Info("simple reply", "replies", simpleReply)
 	simpleReply = map[int]map[string]QReplyRow{}
+	defer logs.Info("sync simple reply", "replies", simpleReply)
 	for _, reply := range replies {
 		if _, ok := simpleReply[reply.QUID]; !ok {
 			simpleReply[reply.QUID] = map[string]QReplyRow{}

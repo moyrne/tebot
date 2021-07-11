@@ -28,7 +28,7 @@ var (
 
 func Analyze(ctx context.Context, params Params) (string, error) {
 	// TODO 优先匹配高级功能
-	// 1. 相等
+	// 相等
 	resp, err := rangeDo(ctx, EqualFunctions, params, equal)
 	if err == nil {
 		return resp, nil
@@ -36,7 +36,7 @@ func Analyze(ctx context.Context, params Params) (string, error) {
 	if !errors.Is(err, ErrNotMatch) {
 		return "", err
 	}
-	// TODO 2. 包含
+	// 前缀
 	resp, err = rangeDo(ctx, PrefixFunctions, params, func(msg, name string) bool {
 		return strings.HasPrefix(strings.ReplaceAll(msg, " ", ""), name)
 	})
@@ -47,9 +47,10 @@ func Analyze(ctx context.Context, params Params) (string, error) {
 		return "", err
 	}
 
-	// TODO 2. 正则
-
 	// TODO 匹配简单回复
+	if err := rateLimiter.Rate(ctx, "simple", params.QUID); err != nil {
+		return "", err
+	}
 	return SimpleReply(ctx, params)
 }
 

@@ -78,6 +78,7 @@ func delaySync(ctx context.Context) {
 
 	simpleMu.Lock()
 	defer simpleMu.Unlock()
+	defer logs.Info("simple reply", "replies", simpleReply)
 	simpleReply = map[int]map[string]QReplyRow{}
 	for _, reply := range replies {
 		if _, ok := simpleReply[reply.QUID]; !ok {

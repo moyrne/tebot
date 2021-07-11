@@ -50,9 +50,7 @@ func Analyze(ctx context.Context, params Params) (string, error) {
 	// TODO 2. 正则
 
 	// TODO 匹配简单回复
-
-	// 未匹配到
-	return "", errors.WithStack(ErrNotMatch)
+	return SimpleReply(ctx, params)
 }
 
 func equal(s, v string) bool {

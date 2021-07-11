@@ -3,6 +3,7 @@ package analyze
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
+	"github.com/moyrne/tebot/internal/analyze/template"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/models"
 	"github.com/moyrne/weather"
@@ -25,8 +26,7 @@ func SignIn(ctx context.Context, params Params) (string, error) {
 		return "", err
 	}
 	if area == "" {
-		return "未绑定位置\n" +
-			"例如: 绑定位置 深圳", nil
+		return "未绑定位置\n例如: 绑定位置 深圳", nil
 	}
 	if err := database.NewTransaction(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
 		return (&models.QSignIn{QUID: params.QUID}).Insert(ctx, tx)
@@ -41,11 +41,5 @@ func SignIn(ctx context.Context, params Params) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "签到成功！\n" +
-		"[今日天气]\n" +
-		data.Time.Format("2006-01-02") + "\n" +
-		data.City + "\n" +
-		data.Weather + "\n" +
-		data.Wd + " " + data.Ws + "\n" +
-		data.Temperature + "℃~" + data.TemperatureN + "℃", nil
+	return template.Marshal.Template(template.SingInKey).Execute(template.SingInParam(data))
 }

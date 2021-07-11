@@ -37,7 +37,7 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 
 	if params.PostType != PTMessage {
 		// 忽略 非消息事件
-		logs.Error("unknown params", "post_type", params.PostType)
+		logs.Error("unknown params", "params", params)
 		return
 	}
 

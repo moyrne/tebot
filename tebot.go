@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	_ "github.com/lib/pq"
+	"github.com/moyrne/tebot/internal/analyze"
 
 	"github.com/moyrne/tebot/configs"
 	"github.com/moyrne/tebot/internal/database"
@@ -23,6 +25,7 @@ func main() {
 	if err := database.ConnectPG(); err != nil {
 		logs.Panic("db connect", "error", err)
 	}
+	analyze.SyncReply(context.Background())
 	if err := database.ConnectRedis(); err != nil {
 		logs.Panic("redis connect", "error", err)
 	}

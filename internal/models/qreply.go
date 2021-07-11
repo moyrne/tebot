@@ -7,11 +7,11 @@ import (
 )
 
 type QReply struct {
-	ID     int64    `json:"id"`
-	QUID   int      `json:"quid"`
-	Msg    string   `json:"msg"` // 前缀搜索
-	Weight int      `json:"weight"`
-	Reply  []string `json:"reply"`
+	ID     int64  `json:"id"`
+	QUID   int    `json:"quid"`
+	Msg    string `json:"msg"` // 前缀搜索
+	Weight int    `json:"weight"`
+	Reply  string `json:"reply"`
 }
 
 func (r QReply) TableName() string {

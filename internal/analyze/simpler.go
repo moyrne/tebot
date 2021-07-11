@@ -2,6 +2,7 @@ package analyze
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/jmoiron/sqlx"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/logs"
@@ -84,10 +85,15 @@ func delaySync(ctx context.Context) {
 		if _, ok := simpleReply[reply.QUID]; !ok {
 			simpleReply[reply.QUID] = map[string]QReplyRow{}
 		}
+		var r []string
+		if err := json.Unmarshal([]byte(reply.Reply), &r); err != nil {
+			logs.Error("delay sync unmarshal", "data", reply, "error", err)
+			continue
+		}
 		simpleReply[reply.QUID][reply.Msg] = QReplyRow{
 			Msg:    reply.Msg,
 			Weight: reply.Weight,
-			Reply:  reply.Reply,
+			Reply:  r,
 		}
 	}
 }

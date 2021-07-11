@@ -48,9 +48,6 @@ func Analyze(ctx context.Context, params Params) (string, error) {
 	}
 
 	// TODO 匹配简单回复
-	if err := rateLimiter.Rate(ctx, "simple", params.QUID); err != nil {
-		return "", err
-	}
 	return SimpleReply(ctx, params)
 }
 

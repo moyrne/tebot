@@ -32,13 +32,16 @@ var (
 )
 
 // SimpleReply 简单回复
-func SimpleReply(_ context.Context, params Params) (string, error) {
+func SimpleReply(ctx context.Context, params Params) (string, error) {
 	simpleMu.RLock()
 	defer simpleMu.RUnlock()
 	custom, ok := simpleReply[params.QUID]
 	if ok {
 		for msg, reply := range custom {
 			if strings.Contains(params.Message, msg) {
+				if err := rateLimiter.Rate(ctx, "simple", params.QUID); err != nil {
+					return "", err
+				}
 				return randReply(reply.Reply), nil
 			}
 		}
@@ -47,6 +50,9 @@ func SimpleReply(_ context.Context, params Params) (string, error) {
 	def := simpleReply[0]
 	for msg, reply := range def {
 		if strings.Contains(params.Message, msg) {
+			if err := rateLimiter.Rate(ctx, "simple", params.QUID); err != nil {
+				return "", err
+			}
 			return randReply(reply.Reply), nil
 		}
 	}

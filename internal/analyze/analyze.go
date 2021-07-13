@@ -12,36 +12,23 @@ type Params struct {
 }
 
 type Menu struct {
-	Name string
-	Fn   func(context.Context, Params) (string, error)
+	Name  string
+	Fn    func(context.Context, Params) (string, error)
+	Match func(s, v string) bool
 }
 
 var (
-	EqualFunctions = []Menu{
-		{Name: "menu", Fn: PrintMenu},
-		{Name: "签到", Fn: SignIn},
-	}
-	PrefixFunctions = []Menu{
-		{Name: "绑定位置", Fn: BindArea},
+	Functions = []Menu{
+		{Name: "menu", Fn: PrintMenu, Match: Equal},
+		{Name: "签到", Fn: SignIn, Match: Equal},
+		{Name: "绑定位置", Fn: BindArea, Match: Prefix},
 	}
 )
 
 func Analyze(ctx context.Context, params Params) (string, error) {
 	// TODO 优先匹配高级功能
 	// 相等
-	resp, err := rangeDo(ctx, EqualFunctions, params, func(s, v string) bool {
-		return strings.ReplaceAll(s, " ", "") == strings.ReplaceAll(v, " ", "")
-	})
-	if err == nil {
-		return resp, nil
-	}
-	if !errors.Is(err, ErrNotMatch) {
-		return "", err
-	}
-	// 前缀
-	resp, err = rangeDo(ctx, PrefixFunctions, params, func(msg, name string) bool {
-		return strings.HasPrefix(strings.ReplaceAll(msg, " ", ""), name)
-	})
+	resp, err := rangeDo(ctx, Functions, params)
 	if err == nil {
 		return resp, nil
 	}
@@ -55,9 +42,9 @@ func Analyze(ctx context.Context, params Params) (string, error) {
 
 var ErrNotMatch = errors.New("not match")
 
-func rangeDo(ctx context.Context, functions []Menu, params Params, match func(msg, name string) bool) (string, error) {
+func rangeDo(ctx context.Context, functions []Menu, params Params) (string, error) {
 	for _, menu := range functions {
-		if match(params.Message, menu.Name) {
+		if menu.Match(params.Message, menu.Name) {
 			if err := rateLimiter.Rate(ctx, menu.Name, params.QUID); err != nil {
 				return "", err
 			}
@@ -65,4 +52,12 @@ func rangeDo(ctx context.Context, functions []Menu, params Params, match func(ms
 		}
 	}
 	return "", errors.WithStack(ErrNotMatch)
+}
+
+func Equal(s, v string) bool {
+	return strings.ReplaceAll(s, " ", "") == strings.ReplaceAll(v, " ", "")
+}
+
+func Prefix(s, v string) bool {
+	return strings.HasPrefix(strings.ReplaceAll(s, " ", ""), v)
 }

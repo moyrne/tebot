@@ -29,7 +29,9 @@ var (
 func Analyze(ctx context.Context, params Params) (string, error) {
 	// TODO 优先匹配高级功能
 	// 相等
-	resp, err := rangeDo(ctx, EqualFunctions, params, equal)
+	resp, err := rangeDo(ctx, EqualFunctions, params, func(s, v string) bool {
+		return strings.ReplaceAll(s, " ", "") == strings.ReplaceAll(v, " ", "")
+	})
 	if err == nil {
 		return resp, nil
 	}
@@ -49,10 +51,6 @@ func Analyze(ctx context.Context, params Params) (string, error) {
 
 	// TODO 匹配简单回复
 	return SimpleReply(ctx, params)
-}
-
-func equal(s, v string) bool {
-	return strings.ReplaceAll(s, " ", "") == strings.ReplaceAll(v, " ", "")
 }
 
 var ErrNotMatch = errors.New("not match")

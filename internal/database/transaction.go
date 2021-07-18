@@ -12,6 +12,11 @@ var (
 )
 
 func NewTransaction(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) (err error) {
+	var tx *sqlx.Tx
+	tx, err = DB.Beginx()
+	if err != nil {
+		return errors.Wrap(err, "beginx")
+	}
 	// recover
 	defer func() {
 		if r := recover(); r != nil {
@@ -21,17 +26,14 @@ func NewTransaction(ctx context.Context, fn func(ctx context.Context, tx *sqlx.T
 				err = fmt.Errorf("%v", r)
 			}
 		}
+		if err != nil {
+			if e := tx.Rollback(); e != nil {
+				err = errors.WithMessagef(err, "rollback %v", e)
+			}
+			return
+		}
+		err = errors.Wrap(tx.Commit(), "tx commit")
 	}()
-	tx, err := DB.Beginx()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	err = fn(ctx, tx)
-	if err == nil {
-		return errors.WithStack(tx.Commit())
-	}
-	if err := tx.Rollback(); err != nil {
-		return errors.WithStack(err)
-	}
-	return errors.WithStack(err)
+
+	return fn(ctx, tx)
 }

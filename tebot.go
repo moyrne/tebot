@@ -1,7 +1,8 @@
 package main
 
 import (
-	_ "github.com/go-pg_sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/moyrne/tebot/internal/service/commands"
 
 	"context"
 	"github.com/moyrne/tebot/configs"
@@ -29,6 +30,7 @@ func main() {
 	if err := database.ConnectRedis(); err != nil {
 		logs.Panic("redis connect", "error", err)
 	}
+	go commands.StartCQHTTP()
 	r := api.NewRouter()
 	if err := r.Run("127.0.0.1:7771"); err != nil {
 		logs.Panic("service run", "error", err)

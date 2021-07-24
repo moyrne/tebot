@@ -8,6 +8,7 @@ import (
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/logs"
 	"github.com/moyrne/tebot/internal/models"
+	"github.com/moyrne/tebot/internal/service/commands"
 	"github.com/pkg/errors"
 	"net/http"
 	"time"
@@ -27,11 +28,13 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 	var params QMessage
 	if err := c.BindJSON(&params); err != nil {
 		// TODO log error
+		logs.Info("cqhttp", "unmarshal error", err)
 		return
 	}
 
 	if params.PostType == PTEvent {
 		// 忽略 心跳检测
+		commands.CQHeartBeat()
 		return
 	}
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/moyrne/tebot/internal/service/commands"
 
 	"context"
 	"github.com/moyrne/tebot/configs"
@@ -10,6 +9,7 @@ import (
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/logs"
 	"github.com/moyrne/tebot/internal/service/api"
+	"github.com/moyrne/tebot/internal/service/commands"
 	"log"
 )
 

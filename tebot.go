@@ -1,11 +1,11 @@
 package main
 
 import (
-	"context"
-	_ "github.com/lib/pq"
-	"github.com/moyrne/tebot/internal/analyze"
+	_ "github.com/go-pg_sql-driver/mysql"
 
+	"context"
 	"github.com/moyrne/tebot/configs"
+	"github.com/moyrne/tebot/internal/analyze"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/logs"
 	"github.com/moyrne/tebot/internal/service/api"
@@ -22,7 +22,7 @@ func main() {
 	}
 	defer writer.Close()
 	logs.Init(writer)
-	if err := database.ConnectPG(); err != nil {
+	if err := database.ConnectMySQL(); err != nil {
 		logs.Panic("db connect", "error", err)
 	}
 	analyze.SyncReply(context.Background())

@@ -5,7 +5,6 @@ create table q_sign_in
             primary key,
     quid      bigint    not null,
     create_at date,
-    write_at  date,
     day       date,
     constraint q_sign_in_pk_2
         unique (quid, day)

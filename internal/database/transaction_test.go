@@ -13,8 +13,8 @@ import (
 	"testing"
 )
 
-// sql.(*Tx).Rollback 被内联, 无法打桩, 需要对私有方法打桩
-//go:linkname rollbackFn database/sql.(*Tx).rollback
+// pg_sql.(*Tx).Rollback 被内联, 无法打桩, 需要对私有方法打桩
+//go:linkname rollbackFn database/pg_sql.(*Tx).rollback
 func rollbackFn(*sql.Tx, bool) error
 
 func TestNewTransaction(t *testing.T) {

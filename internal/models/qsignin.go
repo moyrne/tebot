@@ -25,15 +25,17 @@ func (s *QSignIn) Insert(ctx context.Context, tx *sqlx.Tx) error {
 	if err := s.GetQSignInByQUID(ctx, tx); err != nil {
 		return err
 	}
-	query := `insert into q_sign_in (quid,create_at,day) values ($1,$2,$3) returning id`
-	if err := tx.GetContext(ctx, &s.ID, query, s.QUID, time.Now(), time.Now().Format("2006-01-02")); err != nil {
+	query := `insert into q_sign_in (quid,create_at,day) values (?,?,?)`
+	result, err := tx.ExecContext(ctx, query, s.QUID, time.Now(), time.Now().Format("2006-01-02"))
+	if err != nil {
 		return errors.WithStack(err)
 	}
+	s.ID, err = result.LastInsertId()
 	return nil
 }
 
 func (s *QSignIn) GetQSignInByQUID(ctx context.Context, tx *sqlx.Tx) error {
-	query := `select * from q_sign_in where quid = $1 and day>= $2`
+	query := `select * from q_sign_in where quid = ? and day>= ?`
 	err := tx.GetContext(ctx, s, query, s.QUID, time.Now().Format("2006-01-02"))
 	if err == nil {
 		return errors.WithStack(ErrAlreadySignIn)

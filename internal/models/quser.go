@@ -28,7 +28,7 @@ func (u QUser) TableName() string {
 
 func GetQUserByQUID(ctx context.Context, tx *sqlx.Tx, quid int) (*QUser, error) {
 	var user QUser
-	query := `select * from q_user where quid = $1`
+	query := `select * from q_user where quid = ?`
 	err := tx.GetContext(ctx, &user, query, quid)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -37,7 +37,7 @@ func GetQUserByQUID(ctx context.Context, tx *sqlx.Tx, quid int) (*QUser, error) 
 }
 
 func (u *QUser) GetOrInsert(ctx context.Context, tx *sqlx.Tx) error {
-	query := `select * from q_user where quid = $1 for update`
+	query := `select * from q_user where quid = ? for update`
 	err := tx.GetContext(ctx, u, query, u.QUID)
 	if err == nil {
 		return nil
@@ -45,12 +45,17 @@ func (u *QUser) GetOrInsert(ctx context.Context, tx *sqlx.Tx) error {
 	if !errors.Is(err, sql.ErrNoRows) {
 		return errors.WithStack(err)
 	}
-	query = `insert into q_user (quid,nickname,sex,age) values ($1,$2,$3,$4) returning id`
-	return errors.WithStack(tx.GetContext(ctx, &u.ID, query, u.QUID, u.Nickname, u.Sex, u.Age))
+	query = `insert into q_user (quid,nickname,sex,age) values (?,?,?,?)`
+	result, err := tx.ExecContext(ctx, query, u.QUID, u.Nickname, u.Sex, u.Age)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	u.ID, err = result.LastInsertId()
+	return errors.WithStack(err)
 }
 
 func UpdateArea(ctx context.Context, tx *sqlx.Tx, quid int, area string) error {
-	query := `update q_user set bind_area = $1 where quid = $2`
+	query := `update q_user set bind_area = ? where quid = ?`
 	result, err := tx.ExecContext(ctx, query, area, quid)
 	if err != nil {
 		return errors.WithStack(err)

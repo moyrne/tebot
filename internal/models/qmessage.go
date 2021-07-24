@@ -48,12 +48,17 @@ func (m *QMessage) Insert(ctx context.Context, tx *sqlx.Tx) error {
 	if err := m.QUser.GetOrInsert(ctx, tx); err != nil {
 		return err
 	}
-	query := `insert into q_message (time,self_id,post_type,message_type,sub_type,temp_source,message_id,group_id,user_id,message,raw_message,font) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning id`
-	return errors.WithStack(tx.GetContext(ctx, &m.ID, query, m.Time, m.SelfID, m.PostType, m.MessageType, m.SubType, m.TempSource, m.MessageID, m.GroupID, m.UserID, m.Message, m.RawMessage, m.Font))
+	query := `insert into q_message (time,self_id,post_type,message_type,sub_type,temp_source,message_id,group_id,user_id,message,raw_message,font) values (?,?,?,?,?,?,?,?,?,?,?,?)`
+	result, err := tx.ExecContext(ctx, query, m.Time, m.SelfID, m.PostType, m.MessageType, m.SubType, m.TempSource, m.MessageID, m.GroupID, m.UserID, m.Message, m.RawMessage, m.Font)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	m.ID, err = result.LastInsertId()
+	return errors.WithStack(err)
 }
 
 func (m *QMessage) SetReply(ctx context.Context, tx *sqlx.Tx) error {
-	query := `update q_message set reply = $1 where id = $2`
+	query := `update q_message set reply = ? where id = ?`
 	r, err := tx.ExecContext(ctx, query, m.Reply, m.ID)
 	if err != nil {
 		return errors.WithStack(err)

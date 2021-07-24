@@ -9,21 +9,7 @@ import (
 
 var DB *sqlx.DB
 
-func ConnectPG() (err error) {
-	dsn, err := loadDSN()
-	if err != nil {
-		return err
-	}
-	DB, err = sqlx.Connect("postgres", dsn)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	DB.SetMaxIdleConns(5)
-	DB.SetMaxOpenConns(30)
-	return nil
-}
-
-type PgDSN struct {
+type DSN struct {
 	Host     string
 	Port     int
 	User     string
@@ -31,15 +17,22 @@ type PgDSN struct {
 	DBName   string
 }
 
-func loadDSN() (string, error) {
-	var dsn PgDSN
-	if err := viper.UnmarshalKey("DB", &dsn); err != nil {
-		return "", errors.WithStack(err)
+func ConnectPG() (err error) {
+	var dsnObj DSN
+	if err := viper.UnmarshalKey("DB", &dsnObj); err != nil {
+		return errors.WithStack(err)
 	}
-	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		dsn.Host,
-		dsn.Port,
-		dsn.User,
-		dsn.Password,
-		dsn.DBName), nil
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		dsnObj.Host,
+		dsnObj.Port,
+		dsnObj.User,
+		dsnObj.Password,
+		dsnObj.DBName)
+	DB, err = sqlx.Connect("postgres", dsn)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	DB.SetMaxIdleConns(5)
+	DB.SetMaxOpenConns(30)
+	return nil
 }

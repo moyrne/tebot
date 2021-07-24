@@ -30,7 +30,7 @@ func StartCQHTTP() {
 
 func netChecking() {
 	window := [3]bool{true, true, true}
-	tick := time.Tick(time.Second * 5)
+	tick := time.NewTicker(time.Second * 5)
 	for {
 		if !(window[0] && window[1] && window[2]) {
 			atomic.StoreInt32(&netNormal, 0)
@@ -40,7 +40,7 @@ func netChecking() {
 		}
 
 		window[0], window[1], window[2] = window[1], window[2], ping()
-		<-tick
+		<-tick.C
 	}
 }
 

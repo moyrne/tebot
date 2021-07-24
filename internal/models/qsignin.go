@@ -31,7 +31,7 @@ func (s *QSignIn) Insert(ctx context.Context, tx *sqlx.Tx) error {
 		return errors.WithStack(err)
 	}
 	s.ID, err = result.LastInsertId()
-	return nil
+	return errors.WithStack(err)
 }
 
 func (s *QSignIn) GetQSignInByQUID(ctx context.Context, tx *sqlx.Tx) error {

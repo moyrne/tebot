@@ -7,7 +7,7 @@ import (
 )
 
 func NewRouter() *gin.Engine {
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.ReleaseMode)
 	e := gin.Default()
 	var h v1.CqHTTP
 	analyze.InitLimiter()

@@ -1,8 +1,13 @@
 package logs
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/jmoiron/sqlx"
+	"github.com/moyrne/tebot/internal/database"
+	"github.com/moyrne/tebot/internal/models"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"io"
 	"log"
@@ -13,13 +18,27 @@ import (
 var logs = &log.Logger{}
 
 func Init(out ...io.Writer) {
-	// 初始化
-	writer := io.MultiWriter(os.Stdout)
-	if len(out) != 0 {
-		writer = io.MultiWriter(os.Stdout, out[0])
-	}
 	// 输出到文件
-	logs.SetOutput(writer)
+	logs.SetOutput(io.MultiWriter(append(out, os.Stdout)...))
+}
+
+var ErrDBNotConnect = errors.New("database not connected")
+
+type Log struct{}
+
+// TODO 可能需要考虑大量日志写入时的性能问题，可能可以改造成异步批量写入
+// 	定时和定量写入
+func (Log) Write(data []byte) (int, error) {
+	if database.DB == nil {
+		log.Println("database not connected")
+		return 0, errors.WithStack(ErrDBNotConnect)
+	}
+	if err := database.NewTransaction(context.Background(), func(ctx context.Context, tx *sqlx.Tx) error {
+		return (&models.Log{Detail: string(data)}).Insert(ctx, tx)
+	}); err != nil {
+		return 0, err
+	}
+	return len(data), nil
 }
 
 func FileWriter() (*os.File, error) {

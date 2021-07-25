@@ -7,16 +7,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var DB *sqlx.DB
-
-type DSN struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	DBName   string
-}
-
 func ConnectPG() (err error) {
 	var dsnObj DSN
 	if err := viper.UnmarshalKey("DB", &dsnObj); err != nil {

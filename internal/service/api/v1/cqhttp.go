@@ -11,6 +11,7 @@ import (
 	"github.com/moyrne/tebot/internal/service/commands"
 	"github.com/pkg/errors"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -103,7 +104,8 @@ func (h CqHTTP) group(c *gin.Context, params *models.QMessage) (Reply, error) {
 		_, err := models.GetQGroupByQGID(ctx, tx, params.GroupID)
 		return err
 	}); err != nil {
-		return Reply{}, err
+		// 只显示主要原因, 抛弃栈信息
+		return Reply{}, errors.WithMessage(errors.Cause(err), strconv.Itoa(int(params.GroupID.Int64)))
 	}
 	reply, err := analyze.Analyze(c.Request.Context(), analyze.Params{QUID: params.UserID, Message: params.Message})
 	if err != nil {

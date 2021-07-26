@@ -16,7 +16,7 @@ create table q_message
     reply varchar(256) null,
     constraint q_message_pk
         primary key (id)
-);
+) default charset utf8mb4;
 
 create index q_message_user_id_index
 	on q_message (user_id);

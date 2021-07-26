@@ -10,7 +10,7 @@ create table q_user
     ban bool default false not null,
     constraint q_user_pk
         primary key (id)
-);
+) default charset utf8mb4;
 
 create unique index q_user_quid_uindex
 	on q_user (quid);

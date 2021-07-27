@@ -12,6 +12,8 @@ import (
 
 var netNormal = int32(1)
 
+// TODO 抽象出 看门狗功能
+
 func StartCQHTTP() {
 	go netChecking()
 	for {

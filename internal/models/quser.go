@@ -3,8 +3,8 @@ package models
 import (
 	"context"
 	"database/sql"
-	"github.com/jmoiron/sqlx"
 	"github.com/moyrne/tebot/internal/database"
+	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )
 
@@ -26,7 +26,7 @@ func (u QUser) TableName() string {
 	return "q_user"
 }
 
-func GetQUserByQUID(ctx context.Context, tx *sqlx.Tx, quid int) (*QUser, error) {
+func GetQUserByQUID(ctx context.Context, tx dbx.Transaction, quid int) (*QUser, error) {
 	var user QUser
 	query := `select * from q_user where quid = ?`
 	err := tx.GetContext(ctx, &user, query, quid)
@@ -36,7 +36,7 @@ func GetQUserByQUID(ctx context.Context, tx *sqlx.Tx, quid int) (*QUser, error) 
 	return &user, nil
 }
 
-func (u *QUser) GetOrInsert(ctx context.Context, tx *sqlx.Tx) error {
+func (u *QUser) GetOrInsert(ctx context.Context, tx dbx.Transaction) error {
 	query := `select * from q_user where quid = ? for update`
 	err := tx.GetContext(ctx, u, query, u.QUID)
 	if err == nil {
@@ -54,7 +54,7 @@ func (u *QUser) GetOrInsert(ctx context.Context, tx *sqlx.Tx) error {
 	return errors.WithStack(err)
 }
 
-func UpdateArea(ctx context.Context, tx *sqlx.Tx, quid int, area string) error {
+func UpdateArea(ctx context.Context, tx dbx.Transaction, quid int, area string) error {
 	query := `update q_user set bind_area = ? where quid = ?`
 	result, err := tx.ExecContext(ctx, query, area, quid)
 	if err != nil {

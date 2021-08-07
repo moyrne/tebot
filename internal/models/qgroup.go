@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
-	"github.com/jmoiron/sqlx"
+	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +19,7 @@ func (g QGroup) TableName() string {
 	return "q_group"
 }
 
-func GetQGroupByQGID(ctx context.Context, tx *sqlx.Tx, qgid sql.NullInt64) (*QGroup, error) {
+func GetQGroupByQGID(ctx context.Context, tx dbx.Transaction, qgid sql.NullInt64) (*QGroup, error) {
 	var group QGroup
 	query := `select * from q_group where qgid = ?`
 	if err := tx.GetContext(ctx, &group, query, qgid.Int64); err != nil {

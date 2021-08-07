@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
-	"github.com/jmoiron/sqlx"
+	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 	"time"
 )
@@ -21,7 +21,7 @@ func (s QSignIn) TableName() string {
 
 var ErrAlreadySignIn = errors.New("already sign in today")
 
-func (s *QSignIn) Insert(ctx context.Context, tx *sqlx.Tx) error {
+func (s *QSignIn) Insert(ctx context.Context, tx dbx.Transaction) error {
 	if err := s.GetQSignInByQUID(ctx, tx); err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (s *QSignIn) Insert(ctx context.Context, tx *sqlx.Tx) error {
 	return errors.WithStack(err)
 }
 
-func (s *QSignIn) GetQSignInByQUID(ctx context.Context, tx *sqlx.Tx) error {
+func (s *QSignIn) GetQSignInByQUID(ctx context.Context, tx dbx.Transaction) error {
 	query := `select * from q_sign_in where quid = ? and day>= ?`
 	err := tx.GetContext(ctx, s, query, s.QUID, time.Now().Format("2006-01-02"))
 	if err == nil {

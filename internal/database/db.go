@@ -1,15 +1,7 @@
 package database
 
 import (
-	"github.com/jmoiron/sqlx"
+	"github.com/moyrne/tractor/dbx"
 )
 
-var DB *sqlx.DB
-
-type DSN struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	DBName   string
-}
+var DB dbx.Database

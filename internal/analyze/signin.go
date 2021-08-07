@@ -2,10 +2,10 @@ package analyze
 
 import (
 	"context"
-	"github.com/jmoiron/sqlx"
 	"github.com/moyrne/tebot/internal/analyze/template"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/models"
+	"github.com/moyrne/tractor/dbx"
 	"github.com/moyrne/weather"
 	"github.com/pkg/errors"
 )
@@ -15,7 +15,7 @@ var weComCn weather.Weather = weather.WeComCn{}
 func SignIn(ctx context.Context, params Params) (string, error) {
 	// 记录签到信息
 	var area string
-	if err := database.NewTransaction(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+	if err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
 		user, err := models.GetQUserByQUID(ctx, tx, params.QUID)
 		if err != nil {
 			return err
@@ -28,7 +28,7 @@ func SignIn(ctx context.Context, params Params) (string, error) {
 	if area == "" {
 		return "未绑定位置\n例如: 绑定位置 深圳", nil
 	}
-	if err := database.NewTransaction(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+	if err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
 		return (&models.QSignIn{QUID: params.QUID}).Insert(ctx, tx)
 	}); err != nil {
 		if errors.Is(err, models.ErrAlreadySignIn) {

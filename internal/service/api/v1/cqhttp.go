@@ -3,12 +3,12 @@ package v1
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
 	"github.com/moyrne/tebot/internal/analyze"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/logs"
 	"github.com/moyrne/tebot/internal/models"
 	"github.com/moyrne/tebot/internal/service/commands"
+	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
@@ -47,7 +47,7 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 
 	qmModel := params.Model()
 	// 优先提供服务 记录失败忽略
-	err := database.NewTransaction(c.Request.Context(), func(ctx context.Context, tx *sqlx.Tx) error {
+	err := database.NewTransaction(c.Request.Context(), func(ctx context.Context, tx dbx.Transaction) error {
 		return qmModel.Insert(c.Request.Context(), tx)
 	})
 	if err != nil {
@@ -79,7 +79,7 @@ func (h CqHTTP) HTTP(c *gin.Context) {
 		return
 	}
 
-	if err = database.NewTransaction(c.Request.Context(), func(ctx context.Context, tx *sqlx.Tx) error {
+	if err = database.NewTransaction(c.Request.Context(), func(ctx context.Context, tx dbx.Transaction) error {
 		qmModel.Reply = reply.Reply
 		return qmModel.SetReply(ctx, tx)
 	}); err != nil {
@@ -100,7 +100,7 @@ func (h CqHTTP) private(c *gin.Context, params *models.QMessage) (Reply, error) 
 }
 
 func (h CqHTTP) group(c *gin.Context, params *models.QMessage) (Reply, error) {
-	if err := database.NewTransaction(c.Request.Context(), func(ctx context.Context, tx *sqlx.Tx) error {
+	if err := database.NewTransaction(c.Request.Context(), func(ctx context.Context, tx dbx.Transaction) error {
 		_, err := models.GetQGroupByQGID(ctx, tx, params.GroupID)
 		return err
 	}); err != nil {

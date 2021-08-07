@@ -235,6 +235,8 @@ github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJ
 github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/modern-go/reflect2 v1.0.1 h1:9f412s+6RmYXLWZSEzVVgPGK7C2PphHj5RJrvfx9AWI=
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
+github.com/moyrne/tractor v0.1.3 h1:dwyOVXgy5zjJ2QZzaAjxbLnLwEF3sFGSte3xl+drQow=
+github.com/moyrne/tractor v0.1.3/go.mod h1:lmA98e0MXeWf6ntnlwoPixw4dMoXHTywwBnnGZNmL2Q=
 github.com/moyrne/weather v0.1.1 h1:zuDVv8AdKiC+q7DMG5xKgrX39uQpZg6EBiMAp/3BJqI=
 github.com/moyrne/weather v0.1.1/go.mod h1:WA4Vqzzwnb/Tp28kjymSQVfhcvvsoHKJdUJQgy2UB1M=
 github.com/nxadm/tail v1.4.4 h1:DQuhQpB1tVlglWS2hLQ5OV6B5r8aGxSrPc5Qo6uTN78=

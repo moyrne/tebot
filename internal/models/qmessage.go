@@ -3,8 +3,8 @@ package models
 import (
 	"context"
 	"database/sql"
-	"github.com/jmoiron/sqlx"
 	"github.com/moyrne/tebot/internal/database"
+	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )
 
@@ -44,7 +44,7 @@ func (m QMessage) TableName() string {
 	return "q_message"
 }
 
-func (m *QMessage) Insert(ctx context.Context, tx *sqlx.Tx) error {
+func (m *QMessage) Insert(ctx context.Context, tx dbx.Transaction) error {
 	if err := m.QUser.GetOrInsert(ctx, tx); err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (m *QMessage) Insert(ctx context.Context, tx *sqlx.Tx) error {
 	return errors.WithStack(err)
 }
 
-func (m *QMessage) SetReply(ctx context.Context, tx *sqlx.Tx) error {
+func (m *QMessage) SetReply(ctx context.Context, tx dbx.Transaction) error {
 	query := `update q_message set reply = ? where id = ?`
 	r, err := tx.ExecContext(ctx, query, m.Reply, m.ID)
 	if err != nil {

@@ -2,7 +2,7 @@ package models
 
 import (
 	"context"
-	"github.com/jmoiron/sqlx"
+	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )
 
@@ -17,7 +17,7 @@ func (r QReply) TableName() string {
 	return "q_reply"
 }
 
-func SelectQReply(ctx context.Context, tx *sqlx.Tx) (replies []QReply, err error) {
+func SelectQReply(ctx context.Context, tx dbx.Transaction) (replies []QReply, err error) {
 	query := `select * from q_reply`
 	err = tx.SelectContext(ctx, &replies, query)
 	return replies, errors.WithStack(err)

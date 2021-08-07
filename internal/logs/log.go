@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/models"
+	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"io"
@@ -33,7 +33,7 @@ func (Log) Write(data []byte) (int, error) {
 		log.Println("database not connected")
 		return 0, errors.WithStack(ErrDBNotConnect)
 	}
-	if err := database.NewTransaction(context.Background(), func(ctx context.Context, tx *sqlx.Tx) error {
+	if err := database.NewTransaction(context.Background(), func(ctx context.Context, tx dbx.Transaction) error {
 		return (&models.Log{Detail: string(data)}).Insert(ctx, tx)
 	}); err != nil {
 		return 0, err

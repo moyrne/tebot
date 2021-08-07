@@ -2,9 +2,9 @@ package analyze
 
 import (
 	"context"
-	"github.com/jmoiron/sqlx"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/models"
+	"github.com/moyrne/tractor/dbx"
 	"github.com/moyrne/weather"
 	"github.com/pkg/errors"
 	"strings"
@@ -17,7 +17,7 @@ func BindArea(ctx context.Context, params Params) (string, error) {
 	if area == "" {
 		return "模板：绑定地区 深圳", nil
 	}
-	if err := database.NewTransaction(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+	if err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
 		_, err := weather.GetCityID(area)
 		if err != nil {
 			return errors.WithStack(err)

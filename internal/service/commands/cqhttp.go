@@ -2,6 +2,7 @@ package commands
 
 import (
 	"github.com/moyrne/tebot/internal/logs"
+	"github.com/moyrne/tractor/syncx"
 	"github.com/pkg/errors"
 	"io"
 	"os"
@@ -15,18 +16,20 @@ var netNormal = int32(1)
 // TODO 抽象出 看门狗功能
 
 func StartCQHTTP() {
-	go netChecking()
+	syncx.Go(netChecking)
 	for {
-		// 拉起cqhttp进程
-		if err := startCQHTTP(); err != nil {
-			logs.Error("start cqhttp", "error", err)
-			time.Sleep(time.Second)
-		}
-		// 当进程退出时, 检测网络状态, 判断是否重新拉起
-		for atomic.LoadInt32(&netNormal) != 1 {
-			// 自旋等待网络通畅
-			time.Sleep(time.Second)
-		}
+		syncx.Safe(func() {
+			// 拉起cqhttp进程
+			if err := startCQHTTP(); err != nil {
+				logs.Error("start cqhttp", "error", err)
+				time.Sleep(time.Second)
+			}
+			// 当进程退出时, 检测网络状态, 判断是否重新拉起
+			for atomic.LoadInt32(&netNormal) != 1 {
+				// 自旋等待网络通畅
+				time.Sleep(time.Second)
+			}
+		})
 	}
 }
 
@@ -67,7 +70,9 @@ func startCQHTTP() error {
 	cqCmd.Stdout = w
 	cqCmd.Stderr = w
 	done := make(chan struct{})
-	go cqHeartbeat(cqCmd, done)
+	syncx.Go(func() {
+		cqHeartbeat(cqCmd, done)
+	})
 	defer func() {
 		close(done)
 	}()

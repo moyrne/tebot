@@ -1,10 +1,11 @@
 package template
 
 import (
-	"github.com/moyrne/weather"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/moyrne/weather"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSignIn(t *testing.T) {

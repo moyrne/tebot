@@ -1,11 +1,12 @@
-package models
+package data
 
 import (
 	"context"
 	"database/sql"
+	"time"
+
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type QSignIn struct {

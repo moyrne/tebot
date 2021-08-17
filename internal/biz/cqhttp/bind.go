@@ -1,13 +1,14 @@
-package analyze
+package cqhttp
 
 import (
 	"context"
+	"strings"
+
+	"github.com/moyrne/tebot/internal/data"
 	"github.com/moyrne/tebot/internal/database"
-	"github.com/moyrne/tebot/internal/models"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/moyrne/weather"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 var replacer = strings.NewReplacer("绑定位置", "", " ", "", "\t", "")
@@ -22,7 +23,7 @@ func BindArea(ctx context.Context, params Params) (string, error) {
 		if err != nil {
 			return errors.WithStack(err)
 		}
-		return models.UpdateArea(ctx, tx, params.QUID, area)
+		return data.UpdateArea(ctx, tx, params.QUID, area)
 	}); err != nil {
 		return "", err
 	}

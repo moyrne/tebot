@@ -1,14 +1,15 @@
-package commands
+package keepalive
 
 import (
-	"github.com/moyrne/tebot/internal/logs"
-	"github.com/moyrne/tractor/syncx"
-	"github.com/pkg/errors"
 	"io"
 	"os"
 	"os/exec"
 	"sync/atomic"
 	"time"
+
+	"github.com/moyrne/tebot/internal/logs"
+	"github.com/moyrne/tractor/syncx"
+	"github.com/pkg/errors"
 )
 
 var netNormal = int32(1)

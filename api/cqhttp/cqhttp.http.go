@@ -1,8 +1,9 @@
-package v1
+package cqhttp
 
 import (
-	"database/sql"
-	"github.com/moyrne/tebot/internal/models"
+	"context"
+	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type QMessage struct {
@@ -20,32 +21,6 @@ type QMessage struct {
 	RawMessage  string      `json:"raw_message"`  // 原始消息内容
 	Font        int         `json:"font"`         // 字体
 	Sender      QSender     `json:"sender"`       // 发送人信息
-}
-
-func (m QMessage) Model() *models.QMessage {
-	return &models.QMessage{
-		ID:          int64(m.ID),
-		Time:        m.Time,
-		SelfID:      m.SelfID,
-		PostType:    m.PostType,
-		MessageType: m.MessageType,
-		SubType:     m.SubType,
-		TempSource:  m.TempSource.String(),
-		MessageID:   m.MessageID,
-		GroupID: sql.NullInt64{
-			Int64: m.GroupID,
-		},
-		UserID:     m.UserID,
-		Message:    m.Message,
-		RawMessage: m.RawMessage,
-		Font:       m.Font,
-		QUser: &models.QUser{
-			QUID:     m.Sender.UserID,
-			Nickname: m.Sender.Nickname,
-			Sex:      m.Sender.Sex,
-			Age:      m.Sender.Age,
-		},
-	}
 }
 
 type QSender struct {
@@ -69,34 +44,6 @@ const (
 	TSMailList    = 9 // 通讯录
 )
 
-func (s *TempSource) String() string {
-	if s == nil {
-		return ""
-	}
-	switch *s {
-	case TSGroup:
-		return models.TSGroup // 群聊
-	case TSConsult:
-		return models.TSConsult // QQ咨询
-	case TSSearch:
-		return models.TSSearch // 查找
-	case TSFilm:
-		return models.TSFilm // QQ电影
-	case TSHotTalk:
-		return models.TSHotTalk // 热聊
-	case TSVerify:
-		return models.TSVerify // 验证消息
-	case TSMultiChat:
-		return models.TSMultiChat // 多人聊天
-	case TSAppointment:
-		return models.TSAppointment // 约会
-	case TSMailList:
-		return models.TSMailList // 通讯录
-	default:
-		return "unknown"
-	}
-}
-
 type Reply struct {
 	Reply       string `json:"reply"`                  // 要回复的内容
 	AutoEscape  bool   `json:"auto_escape,omitempty"`  // 消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 reply 字段是字符串时有效
@@ -105,4 +52,24 @@ type Reply struct {
 	Kick        bool   `json:"kick,omitempty"`         // 把发送者踢出群组 ( 需要登录号权限足够 ) , 不拒绝此人后续加群请求, 发送者是匿名用户时无效	不踢
 	Ban         bool   `json:"ban,omitempty"`          // 把发送者禁言 ban_duration 指定时长, 对匿名用户也有效	不禁言
 	BanDuration int    `json:"ban_duration,omitempty"` // 禁言时长	30 分钟
+}
+
+type Server interface {
+	Event(ctx context.Context, message QMessage) (Reply, error)
+}
+
+func RegisterServer(e *gin.Engine, server Server) {
+	e.POST("/", func(c *gin.Context) {
+		var message QMessage
+		if err := c.BindJSON(&message); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "json unmarshal failed"})
+			return
+		}
+		reply, err := server.Event(c.Request.Context(), message)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, reply)
+	})
 }

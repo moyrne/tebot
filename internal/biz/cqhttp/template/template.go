@@ -2,10 +2,11 @@ package template
 
 import (
 	"bytes"
+	"text/template"
+
 	"github.com/moyrne/tebot/internal/logs"
 	"github.com/moyrne/weather"
 	"github.com/pkg/errors"
-	"text/template"
 )
 
 const (

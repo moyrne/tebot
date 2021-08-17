@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/moyrne/tebot/internal/database"
-	"github.com/moyrne/tebot/internal/models"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -34,7 +33,7 @@ func (Log) Write(data []byte) (int, error) {
 		return 0, errors.WithStack(ErrDBNotConnect)
 	}
 	if err := database.NewTransaction(context.Background(), func(ctx context.Context, tx dbx.Transaction) error {
-		return (&models.Log{Detail: string(data)}).Insert(ctx, tx)
+		return (&data.Log{Detail: string(data)}).Insert(ctx, tx)
 	}); err != nil {
 		return 0, err
 	}

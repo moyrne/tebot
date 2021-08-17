@@ -1,12 +1,13 @@
-package analyze
+package cqhttp
 
 import (
-	"github.com/agiledragon/gomonkey"
-	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/agiledragon/gomonkey"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_randReply(t *testing.T) {

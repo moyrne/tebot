@@ -1,16 +1,18 @@
 package main
 
 import (
+	"context"
+	"github.com/gin-gonic/gin"
+	"github.com/moyrne/tebot/internal/biz/cqhttp"
+	"github.com/moyrne/tebot/internal/pkg/keepalive"
+	v1 "github.com/moyrne/tebot/internal/service/cqhttp"
+	"log"
+
 	_ "github.com/go-sql-driver/mysql"
 
-	"context"
 	"github.com/moyrne/tebot/configs"
-	"github.com/moyrne/tebot/internal/analyze"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/logs"
-	"github.com/moyrne/tebot/internal/service/api"
-	"github.com/moyrne/tebot/internal/service/commands"
-	"log"
 )
 
 func main() {
@@ -26,13 +28,17 @@ func main() {
 	if err := database.ConnectMySQL(); err != nil {
 		logs.Panic("db connect", "error", err)
 	}
-	analyze.SyncReply(context.Background())
+	cqhttp.SyncReply(context.Background())
 	if err := database.ConnectRedis(); err != nil {
 		logs.Panic("redis connect", "error", err)
 	}
-	go commands.StartCQHTTP()
-	r := api.NewRouter()
-	if err := r.Run("127.0.0.1:7771"); err != nil {
+	go keepalive.StartCQHTTP()
+	gin.SetMode(gin.DebugMode)
+	e := gin.Default()
+	var h v1.CqHTTP
+	cqhttp.InitLimiter()
+	e.POST("/", h.HTTP)
+	if err := e.Run("127.0.0.1:7771"); err != nil {
 		logs.Panic("service run", "error", err)
 	}
 }

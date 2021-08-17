@@ -1,10 +1,11 @@
-package models
+package data
 
 import (
 	"context"
+	"time"
+
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type Log struct {

@@ -1,4 +1,4 @@
-package models
+package data
 
 // AUser Admin User
 type AUser struct {

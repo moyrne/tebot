@@ -1,8 +1,9 @@
-package models
+package data
 
 import (
 	"context"
 	"database/sql"
+
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"

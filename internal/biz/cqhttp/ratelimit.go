@@ -1,11 +1,12 @@
-package analyze
+package cqhttp
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/go-redis/redis_rate/v9"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/pkg/errors"
-	"strconv"
 )
 
 type Limiter struct {

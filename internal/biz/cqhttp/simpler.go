@@ -1,17 +1,18 @@
-package analyze
+package cqhttp
 
 import (
 	"context"
 	"encoding/json"
-	"github.com/moyrne/tebot/internal/database"
-	"github.com/moyrne/tebot/internal/logs"
-	"github.com/moyrne/tebot/internal/models"
-	"github.com/moyrne/tractor/dbx"
-	"github.com/pkg/errors"
 	"math/rand"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/moyrne/tebot/internal/data"
+	"github.com/moyrne/tebot/internal/database"
+	"github.com/moyrne/tebot/internal/logs"
+	"github.com/moyrne/tractor/dbx"
+	"github.com/pkg/errors"
 )
 
 func PrintMenu(_ context.Context, _ Params) (string, error) {
@@ -82,9 +83,9 @@ func SyncReply(ctx context.Context) {
 func delaySync(ctx context.Context) {
 	// 5分钟同步一次
 	defer time.Sleep(time.Minute * 5)
-	var replies []models.QReply
+	var replies []data.QReply
 	if err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) (err error) {
-		replies, err = models.SelectQReply(ctx, tx)
+		replies, err = data.SelectQReply(ctx, tx)
 		return err
 	}); err != nil {
 		logs.Error("sync reply", "error", err)

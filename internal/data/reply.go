@@ -8,10 +8,10 @@ import (
 )
 
 type QReply struct {
-	ID    int64  `json:"id"`
-	QUID  int    `json:"quid"`
-	Msg   string `json:"msg"` // 前缀搜索
-	Reply string `json:"reply"`
+	ID     int64  `json:"id"`
+	UserID int64  `json:"user_id"`
+	Msg    string `json:"msg"` // 前缀搜索
+	Reply  string `json:"reply"`
 }
 
 func (r QReply) TableName() string {

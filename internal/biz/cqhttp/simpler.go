@@ -15,31 +15,32 @@ import (
 	"github.com/pkg/errors"
 )
 
-func PrintMenu(_ context.Context, _ *QMessage) (string, error) {
+func PrintMenu(_ context.Context, _ *EventUseCase, _ *Message) (string, error) {
 	return "๑ 菜单\n" +
 		"๑ 1.绑定位置;(绑定位置 深圳)\n" +
 		"๑ 2.签到", nil
 }
 
-type QReplyRow struct {
-	Msg   string   `json:"msg"`
-	Reply []string `json:"reply"`
+type ReplyRow struct {
+	Msg     string `json:"msg"`
+	Matches string `json:"matches"`
+
+	Function string   `json:"function"`
+	Replies  []string `json:"replies"`
 }
 
 var (
 	simpleMu    sync.RWMutex
-	simpleReply map[int]map[string]QReplyRow
+	simpleReply map[int64]map[string]ReplyRow
 )
 
-// SimpleReply 简单回复
-func SimpleReply(ctx context.Context, m *QMessage) (string, error) {
+// ReplyMethod 简单回复
+func ReplyMethod(ctx context.Context, uc *EventUseCase, m *Message) (string, error) {
 	simpleMu.RLock()
 	defer simpleMu.RUnlock()
 	custom, ok := simpleReply[m.UserID]
 	if ok {
-		resp, err := rangeSimpler(ctx, custom, m, func(s, v string) bool {
-			return strings.Contains(s, v)
-		})
+		resp, err := rangeSimpler(ctx, uc, custom, m)
 		if err == nil {
 			return resp, nil
 		}
@@ -48,18 +49,23 @@ func SimpleReply(ctx context.Context, m *QMessage) (string, error) {
 		}
 	}
 
-	return rangeSimpler(ctx, simpleReply[0], m, func(s, v string) bool {
-		return strings.Contains(s, v)
-	})
+	return rangeSimpler(ctx, uc, simpleReply[0], m)
 }
 
-func rangeSimpler(ctx context.Context, replies map[string]QReplyRow, m *QMessage, match func(s, v string) bool) (string, error) {
+func rangeSimpler(ctx context.Context, uc *EventUseCase, replies map[string]ReplyRow, m *Message) (string, error) {
 	for msg, reply := range replies {
-		if match(m.Message, msg) {
-			if err := rateLimiter.Rate(ctx, "simple", m.UserID); err != nil {
-				return "", err
+		matches := strings.Split(reply.Matches, ",")
+		for _, match := range matches {
+			if Matches[match].Fn(m.Message, msg) {
+				if err := rateLimiter.Rate(ctx, "reply", m.UserID); err != nil {
+					return "", err
+				}
+				if fn, ok := Functions[reply.Function]; ok {
+					return fn.Fn(ctx, uc, m)
+				}
+
+				return randReply(reply.Replies), nil
 			}
-			return randReply(reply.Reply), nil
 		}
 	}
 	return "", errors.WithStack(ErrNotMatch)
@@ -94,19 +100,19 @@ func delaySync(ctx context.Context) {
 
 	simpleMu.Lock()
 	defer simpleMu.Unlock()
-	simpleReply = map[int]map[string]QReplyRow{}
+	simpleReply = map[int64]map[string]ReplyRow{}
 	for _, reply := range replies {
-		if _, ok := simpleReply[reply.QUID]; !ok {
-			simpleReply[reply.QUID] = map[string]QReplyRow{}
+		if _, ok := simpleReply[reply.UserID]; !ok {
+			simpleReply[reply.UserID] = map[string]ReplyRow{}
 		}
 		var r []string
 		if err := json.Unmarshal([]byte(reply.Reply), &r); err != nil {
 			logs.Error("delay sync unmarshal", "data", reply, "error", err)
 			continue
 		}
-		simpleReply[reply.QUID][reply.Msg] = QReplyRow{
-			Msg:   reply.Msg,
-			Reply: r,
+		simpleReply[reply.UserID][reply.Msg] = ReplyRow{
+			Msg:     reply.Msg,
+			Replies: r,
 		}
 	}
 }

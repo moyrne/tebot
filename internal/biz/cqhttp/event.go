@@ -14,25 +14,29 @@ import (
 
 // TODO log error set to return error
 
-func (uc *QMessageUseCase) Event(ctx context.Context, m *QMessage) (string, error) {
+func (uc *EventUseCase) Event(ctx context.Context, m *Message) (string, error) {
 	err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
-		return uc.repo.Save(ctx, tx, m)
+		// TODO get or create user
+		if err := uc.user.Save(ctx, tx, m.User); err != nil {
+			return err
+		}
+		return uc.message.Save(ctx, tx, m)
 	})
 	if err != nil {
 		logs.Error("insert CqHTTP params failed", "error", err)
 	}
 
 	// User Filter, 检查是否被禁用
-	if m.QUser.Ban {
-		logs.Info("quser has been band", "user", m.QUser)
+	if m.User.Ban {
+		logs.Info("quser has been band", "user", m.User)
 		return "", nil
 	}
 	switch m.MessageType {
 	// TODO const
 	case "MTPrivate":
-		m.Reply, err = uc.private(ctx, m)
+		m.Reply, err = uc.privateHandler(ctx, m)
 	case "MTGroup":
-		m.Reply, err = uc.group(ctx, m)
+		m.Reply, err = uc.groupHandler(ctx, m)
 	default:
 		// log error
 		logs.Error("unsupported message_type", "type", m.MessageType)
@@ -48,7 +52,7 @@ func (uc *QMessageUseCase) Event(ctx context.Context, m *QMessage) (string, erro
 	}
 
 	if err = database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
-		return uc.repo.SetReply(ctx, tx, m.ID, m.Reply)
+		return uc.message.SetReply(ctx, tx, m.ID, m.Reply)
 	}); err != nil {
 		logs.Error("update cqhttp params failed", "error", err)
 	}
@@ -56,39 +60,30 @@ func (uc *QMessageUseCase) Event(ctx context.Context, m *QMessage) (string, erro
 	return m.Reply, nil
 }
 
-func (uc *QMessageUseCase) private(ctx context.Context, m *QMessage) (string, error) {
+func (uc *EventUseCase) privateHandler(ctx context.Context, m *Message) (string, error) {
 	return uc.doEvent(ctx, m)
 }
 
-func (uc *QMessageUseCase) group(ctx context.Context, m *QMessage) (string, error) {
+func (uc *EventUseCase) groupHandler(ctx context.Context, m *Message) (string, error) {
 	if err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
-		//_, err := data.GetQGroupByQGID(ctx, tx, params.GroupID)
-		//return err
-		return nil
+		_, err := uc.group.GetByID(ctx, tx, m.GroupID.Int64)
+		return err
 	}); err != nil {
 		// 只显示主要原因, 抛弃栈信息
 		return "", errors.WithMessage(errors.Cause(err), strconv.Itoa(int(m.GroupID.Int64)))
 	}
 	return uc.doEvent(ctx, m)
 	// TODO at Sender
-	//return api.Reply{Reply: reply, ATSender: true}, nil
+	//return api.Replies{Replies: reply, ATSender: true}, nil
 }
 
-func (uc *QMessageUseCase) doEvent(ctx context.Context, m *QMessage) (string, error) {
-	resp, err := rangeDo(ctx, Functions, m)
-	if err == nil {
-		return resp, nil
-	}
-	if !errors.Is(err, ErrNotMatch) {
-		return "", err
-	}
-
+func (uc *EventUseCase) doEvent(ctx context.Context, m *Message) (string, error) {
 	// 等待3秒 回复
 	defer time.Sleep(time.Second * 3)
 	defer logs.Info("reply", "content", m.Reply)
 
 	// TODO 匹配简单回复
-	return SimpleReply(ctx, m)
+	return ReplyMethod(ctx, uc, m)
 }
 
 const (
@@ -104,32 +99,29 @@ const (
 )
 
 type Menu struct {
-	Name  string
-	Fn    func(context.Context, *QMessage) (string, error)
-	Match func(s, v string) bool
+	Name string
+	Fn   func(ctx context.Context, uc *EventUseCase, m *Message) (string, error)
 }
 
+type Match struct {
+	Name string
+	Fn   func(s, v string) bool
+}
+
+// TODO 抽离 数据库内容，封装到 pkg 中
 var (
-	Functions = []Menu{
-		{Name: "menu", Fn: PrintMenu, Match: Equal},
-		{Name: "签到", Fn: SignIn, Match: Equal},
-		{Name: "绑定位置", Fn: BindArea, Match: Prefix},
+	Functions = map[string]Menu{
+		"PrintMenu":      {Name: "menu", Fn: PrintMenu},
+		"SignInMethod":   {Name: "签到", Fn: SignInMethod},
+		"BindAreaMethod": {Name: "绑定位置", Fn: BindAreaMethod},
+	}
+	Matches = map[string]Match{
+		"Equal":  {Name: "Equal", Fn: Equal},
+		"Prefix": {Name: "Prefix", Fn: Prefix},
 	}
 )
 
 var ErrNotMatch = errors.New("not match")
-
-func rangeDo(ctx context.Context, functions []Menu, m *QMessage) (string, error) {
-	for _, menu := range functions {
-		if menu.Match(m.Message, menu.Name) {
-			if err := rateLimiter.Rate(ctx, menu.Name, m.UserID); err != nil {
-				return "", err
-			}
-			return menu.Fn(ctx, m)
-		}
-	}
-	return "", errors.WithStack(ErrNotMatch)
-}
 
 func Equal(s, v string) bool {
 	return strings.ReplaceAll(s, " ", "") == strings.ReplaceAll(v, " ", "")

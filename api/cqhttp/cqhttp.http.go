@@ -16,7 +16,7 @@ type QMessage struct {
 	TempSource  *TempSource `json:"temp_source"`  // 临时会话来源
 	MessageID   int         `json:"message_id"`   // 消息 ID
 	GroupID     int64       `json:"group_id"`     // 群ID
-	UserID      int         `json:"user_id"`      // 发送者 QQ 号
+	UserID      int64       `json:"user_id"`      // 发送者 QQ 号
 	Message     string      `json:"message"`      // 消息内容
 	RawMessage  string      `json:"raw_message"`  // 原始消息内容
 	Font        int         `json:"font"`         // 字体
@@ -24,7 +24,7 @@ type QMessage struct {
 }
 
 type QSender struct {
-	UserID   int    `json:"user_id"`  // 发送者 QQ 号
+	UserID   int64  `json:"user_id"`  // 发送者 QQ 号
 	Nickname string `json:"nickname"` // 昵称
 	Sex      string `json:"sex"`      // 性别, male 或 female 或 unknown
 	Age      int    `json:"age"`      // 年龄

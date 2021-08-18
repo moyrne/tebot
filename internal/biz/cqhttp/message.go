@@ -6,8 +6,8 @@ import (
 	"github.com/moyrne/tractor/dbx"
 )
 
-// QMessage QQ 聊天记录
-type QMessage struct {
+// Message QQ 聊天记录
+type Message struct {
 	ID          int64         `json:"id"` // 时间戳
 	Time        int           `json:"time"`
 	SelfID      int           `json:"self_id"`
@@ -17,24 +17,27 @@ type QMessage struct {
 	TempSource  string        `json:"temp_source"`  // 临时会话来源
 	MessageID   int           `json:"message_id"`   // 消息ID
 	GroupID     sql.NullInt64 `json:"group_id"`     // 群ID
-	UserID      int           `json:"user_id"`      // 发送者 QQ 号
+	UserID      int64         `json:"user_id"`      // 发送者 QQ 号
 	Message     string        `json:"message"`      // 消息内容
 	RawMessage  string        `json:"raw_message"`  // 原始消息内容
 	Font        int           `json:"font"`         // 字体
 	Reply       string        `json:"reply"`        // 回复
 
-	QUser *QUser `json:"q_user"` // User 信息
+	User *User `json:"q_user"` // User 信息
 }
 
-type QMessageRepo interface {
-	Save(ctx context.Context, tx dbx.Transaction, message *QMessage) error
+type MessageRepo interface {
+	Save(ctx context.Context, tx dbx.Transaction, message *Message) error
 	SetReply(ctx context.Context, tx dbx.Transaction, id int64, reply string) error
 }
 
-func NewQMessageUseCase(repo QMessageRepo) *QMessageUseCase {
-	return &QMessageUseCase{repo: repo}
+func NewMessageUseCase(msg MessageRepo, user UserRepo, signIn SignInRepo) *EventUseCase {
+	return &EventUseCase{message: msg, user: user, signIn: signIn}
 }
 
-type QMessageUseCase struct {
-	repo QMessageRepo
+type EventUseCase struct {
+	message MessageRepo
+	user    UserRepo
+	signIn  SignInRepo
+	group   GroupRepo
 }

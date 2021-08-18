@@ -19,7 +19,7 @@ const (
 )
 
 type Server struct {
-	biz *cqhttp.QMessageUseCase
+	biz *cqhttp.EventUseCase
 }
 
 // Event 文档 https://github.com/ishkong/go-cqhttp-docs/tree/main/docs/event
@@ -42,8 +42,8 @@ func (s Server) Event(ctx context.Context, m api.QMessage) (api.Reply, error) {
 	return api.Reply{Reply: reply}, err
 }
 
-func ToQMessage(m api.QMessage) *cqhttp.QMessage {
-	return &cqhttp.QMessage{
+func ToQMessage(m api.QMessage) *cqhttp.Message {
+	return &cqhttp.Message{
 		ID:          int64(m.ID),
 		Time:        m.Time,
 		SelfID:      m.SelfID,
@@ -59,8 +59,8 @@ func ToQMessage(m api.QMessage) *cqhttp.QMessage {
 		Message:    m.Message,
 		RawMessage: m.RawMessage,
 		Font:       m.Font,
-		QUser: &cqhttp.QUser{
-			QUID:     m.Sender.UserID,
+		User: &cqhttp.User{
+			UserID:   m.Sender.UserID,
 			Nickname: m.Sender.Nickname,
 			Sex:      m.Sender.Sex,
 			Age:      m.Sender.Age,

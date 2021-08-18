@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/moyrne/tebot/internal/data"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/moyrne/weather"
@@ -13,8 +12,8 @@ import (
 
 var replacer = strings.NewReplacer("绑定位置", "", " ", "", "\t", "")
 
-func BindArea(ctx context.Context, params Params) (string, error) {
-	area := replacer.Replace(params.Message)
+func BindAreaMethod(ctx context.Context, uc *EventUseCase, m *Message) (string, error) {
+	area := replacer.Replace(m.Message)
 	if area == "" {
 		return "模板：绑定地区 深圳", nil
 	}
@@ -23,7 +22,7 @@ func BindArea(ctx context.Context, params Params) (string, error) {
 		if err != nil {
 			return errors.WithStack(err)
 		}
-		return data.UpdateArea(ctx, tx, params.QUID, area)
+		return uc.user.UpdateArea(ctx, tx, m.UserID, area)
 	}); err != nil {
 		return "", err
 	}

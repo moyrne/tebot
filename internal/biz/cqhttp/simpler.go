@@ -15,7 +15,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func PrintMenu(_ context.Context, _ Params) (string, error) {
+func PrintMenu(_ context.Context, _ *QMessage) (string, error) {
 	return "๑ 菜单\n" +
 		"๑ 1.绑定位置;(绑定位置 深圳)\n" +
 		"๑ 2.签到", nil
@@ -32,12 +32,12 @@ var (
 )
 
 // SimpleReply 简单回复
-func SimpleReply(ctx context.Context, params Params) (string, error) {
+func SimpleReply(ctx context.Context, m *QMessage) (string, error) {
 	simpleMu.RLock()
 	defer simpleMu.RUnlock()
-	custom, ok := simpleReply[params.QUID]
+	custom, ok := simpleReply[m.UserID]
 	if ok {
-		resp, err := rangeSimpler(ctx, custom, params, func(s, v string) bool {
+		resp, err := rangeSimpler(ctx, custom, m, func(s, v string) bool {
 			return strings.Contains(s, v)
 		})
 		if err == nil {
@@ -48,15 +48,15 @@ func SimpleReply(ctx context.Context, params Params) (string, error) {
 		}
 	}
 
-	return rangeSimpler(ctx, simpleReply[0], params, func(s, v string) bool {
+	return rangeSimpler(ctx, simpleReply[0], m, func(s, v string) bool {
 		return strings.Contains(s, v)
 	})
 }
 
-func rangeSimpler(ctx context.Context, replies map[string]QReplyRow, params Params, match func(s, v string) bool) (string, error) {
+func rangeSimpler(ctx context.Context, replies map[string]QReplyRow, m *QMessage, match func(s, v string) bool) (string, error) {
 	for msg, reply := range replies {
-		if match(params.Message, msg) {
-			if err := rateLimiter.Rate(ctx, "simple", params.QUID); err != nil {
+		if match(m.Message, msg) {
+			if err := rateLimiter.Rate(ctx, "simple", m.UserID); err != nil {
 				return "", err
 			}
 			return randReply(reply.Reply), nil

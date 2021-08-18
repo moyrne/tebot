@@ -13,11 +13,11 @@ import (
 
 var weComCn weather.Weather = weather.WeComCn{}
 
-func SignIn(ctx context.Context, params Params) (string, error) {
+func SignIn(ctx context.Context, m *QMessage) (string, error) {
 	// 记录签到信息
 	var area string
 	if err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
-		user, err := data.GetQUserByQUID(ctx, tx, params.QUID)
+		user, err := data.GetQUserByQUID(ctx, tx, m.UserID)
 		if err != nil {
 			return err
 		}

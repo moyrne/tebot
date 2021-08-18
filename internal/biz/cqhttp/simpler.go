@@ -15,12 +15,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-func PrintMenu(_ context.Context, _ *EventUseCase, _ *Message) (string, error) {
-	return "๑ 菜单\n" +
-		"๑ 1.绑定位置;(绑定位置 深圳)\n" +
-		"๑ 2.签到", nil
-}
-
 type ReplyRow struct {
 	Msg     string `json:"msg"`
 	Matches string `json:"matches"`
@@ -89,7 +83,7 @@ func SyncReply(ctx context.Context) {
 func delaySync(ctx context.Context) {
 	// 5分钟同步一次
 	defer time.Sleep(time.Minute * 5)
-	var replies []data.QReply
+	var replies []data.Reply
 	if err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) (err error) {
 		replies, err = data.SelectQReply(ctx, tx)
 		return err

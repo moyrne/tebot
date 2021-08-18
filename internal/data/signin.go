@@ -10,12 +10,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-var _ cqhttp.SignInRepo = SignInData{}
+var _ cqhttp.SignInRepo = signInRepo{}
 var ErrAlreadySignIn = errors.New("already sign in today")
 
-type SignInData struct{}
+type signInRepo struct{}
 
-func (s SignInData) GetByUserID(ctx context.Context, tx dbx.Transaction, userID int64) (cqhttp.SignIn, error) {
+func NewSignInRepo() cqhttp.SignInRepo {
+	return signInRepo{}
+}
+
+func (s signInRepo) GetByUserID(ctx context.Context, tx dbx.Transaction, userID int64) (cqhttp.SignIn, error) {
 	var signIn cqhttp.SignIn
 	query := `select * from q_sign_in where quid = ? and day>= ?`
 	err := tx.GetContext(ctx, &signIn, query, userID, time.Now().Format("2006-01-02"))
@@ -28,7 +32,7 @@ func (s SignInData) GetByUserID(ctx context.Context, tx dbx.Transaction, userID 
 	return signIn, nil
 }
 
-func (s SignInData) Save(ctx context.Context, tx dbx.Transaction, signIn *cqhttp.SignIn) error {
+func (s signInRepo) Save(ctx context.Context, tx dbx.Transaction, signIn *cqhttp.SignIn) error {
 	if _, err := s.GetByUserID(ctx, tx, signIn.UserID); err != nil {
 		return err
 	}

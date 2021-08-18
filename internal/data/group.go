@@ -7,11 +7,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-var _ cqhttp.GroupRepo = GroupData{}
+var _ cqhttp.GroupRepo = groupRepo{}
 
-type GroupData struct{}
+type groupRepo struct{}
 
-func (g GroupData) GetByID(ctx context.Context, tx dbx.Transaction, groupID int64) (*cqhttp.Group, error) {
+func (g groupRepo) GetByID(ctx context.Context, tx dbx.Transaction, groupID int64) (*cqhttp.Group, error) {
 	var group cqhttp.Group
 	query := `select * from group where group_id = ?`
 	if err := tx.GetContext(ctx, &group, query, groupID); err != nil {

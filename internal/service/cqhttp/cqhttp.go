@@ -36,10 +36,9 @@ func (s Server) Event(ctx context.Context, m api.QMessage) (api.Reply, error) {
 		return api.Reply{}, nil
 	}
 
-	// TODO 业务逻辑转移到 biz
 	// 优先提供服务 记录失败忽略
 	reply, err := s.biz.Event(ctx, ToQMessage(m))
-	return api.Reply{Reply: reply}, err
+	return api.Reply{Reply: reply.Reply, ATSender: reply.ATSender}, err
 }
 
 func ToQMessage(m api.QMessage) *cqhttp.Message {
@@ -48,7 +47,7 @@ func ToQMessage(m api.QMessage) *cqhttp.Message {
 		Time:        m.Time,
 		SelfID:      m.SelfID,
 		PostType:    m.PostType,
-		MessageType: m.MessageType,
+		MessageType: ToMessageType(m.MessageType),
 		SubType:     m.SubType,
 		TempSource:  ToTempSource(m.TempSource),
 		MessageID:   m.MessageID,
@@ -65,6 +64,17 @@ func ToQMessage(m api.QMessage) *cqhttp.Message {
 			Sex:      m.Sender.Sex,
 			Age:      m.Sender.Age,
 		},
+	}
+}
+
+func ToMessageType(t string) string {
+	switch t {
+	case MTPrivate:
+		return cqhttp.MTPrivate
+	case MTGroup:
+		return cqhttp.MTGroup
+	default:
+		return "unknown"
 	}
 }
 

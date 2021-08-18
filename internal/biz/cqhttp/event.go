@@ -2,87 +2,100 @@ package cqhttp
 
 import (
 	"context"
-	"github.com/moyrne/tebot/internal/database"
-	"github.com/moyrne/tebot/internal/logs"
-	"github.com/moyrne/tractor/dbx"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/moyrne/tebot/internal/database"
+	"github.com/moyrne/tebot/internal/logs"
+	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )
 
-// TODO log error set to return error
+type EventRepo interface {
+	SaveMessage(ctx context.Context, tx dbx.Transaction, message *Message) error
+	SetMessageReply(ctx context.Context, tx dbx.Transaction, id int64, reply string) error
+	GetGroupByID(ctx context.Context, tx dbx.Transaction, groupID int64) (*Group, error)
+	GetSignInByUserID(ctx context.Context, tx dbx.Transaction, userID int64) (SignIn, error)
+	SaveSignIn(ctx context.Context, tx dbx.Transaction, signIn *SignIn) error
+	GetUserByUserID(ctx context.Context, tx dbx.Transaction, id int64) (*User, error)
+	SaveUser(ctx context.Context, tx dbx.Transaction, u *User) error
+	UpdateUserArea(ctx context.Context, tx dbx.Transaction, userID int64, area string) error
+}
 
-func (uc *EventUseCase) Event(ctx context.Context, m *Message) (string, error) {
-	err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
-		// TODO get or create user
-		if err := uc.user.Save(ctx, tx, m.User); err != nil {
+func NewMessageUseCase(repo EventRepo) *EventUseCase {
+	return &EventUseCase{repo: repo}
+}
+
+type EventUseCase struct {
+	repo EventRepo
+}
+
+var (
+	ErrUserBand           = errors.New("user has been band")
+	ErrUnsupportedMsgType = errors.New("unsupported msg type")
+)
+
+type EventReply struct {
+	Reply    string `json:"reply"`
+	ATSender bool   `json:"at_sender"`
+}
+
+const (
+	MTPrivate = "private"
+	MTGroup   = "group"
+)
+
+func (uc *EventUseCase) Event(ctx context.Context, m *Message) (reply EventReply, err error) {
+	if err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
+		if err := uc.repo.SaveUser(ctx, tx, m.User); err != nil {
 			return err
 		}
-		return uc.message.Save(ctx, tx, m)
-	})
-	if err != nil {
-		logs.Error("insert CqHTTP params failed", "error", err)
+		return uc.repo.SaveMessage(ctx, tx, m)
+	}); err != nil {
+		logs.Error("event message save", "error", err)
 	}
 
 	// User Filter, 检查是否被禁用
 	if m.User.Ban {
-		logs.Info("quser has been band", "user", m.User)
-		return "", nil
-	}
-	switch m.MessageType {
-	// TODO const
-	case "MTPrivate":
-		m.Reply, err = uc.privateHandler(ctx, m)
-	case "MTGroup":
-		m.Reply, err = uc.groupHandler(ctx, m)
-	default:
-		// log error
-		logs.Error("unsupported message_type", "type", m.MessageType)
-		return "", nil
+		return reply, errors.Wrapf(ErrUserBand, "user: %#v", m.User)
 	}
 
-	if errors.Is(err, ErrNotMatch) {
-		return "", nil
+	// 排除类型
+	if m.MessageType != MTPrivate && m.MessageType != MTGroup {
+		return reply, errors.Wrapf(ErrUnsupportedMsgType, "type: %s", m.MessageType)
 	}
+
+	// 排除群号
+	if m.MessageType == MTGroup {
+		if e := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
+			_, e := uc.repo.GetGroupByID(ctx, tx, m.GroupID.Int64)
+			return e
+		}); e != nil {
+			// 只显示主要原因, 抛弃栈信息
+			return reply, errors.WithMessage(errors.Cause(e), strconv.Itoa(int(m.GroupID.Int64)))
+		}
+		reply.ATSender = true
+	}
+
+	reply.Reply, err = uc.doEvent(ctx, m)
 	if err != nil {
-		logs.Info("get reply", "error", err)
-		return "", nil
+		return reply, err
 	}
 
-	if err = database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
-		return uc.message.SetReply(ctx, tx, m.ID, m.Reply)
-	}); err != nil {
-		logs.Error("update cqhttp params failed", "error", err)
-	}
+	err = database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
+		return uc.repo.SetMessageReply(ctx, tx, m.ID, reply.Reply)
+	})
 
-	return m.Reply, nil
-}
-
-func (uc *EventUseCase) privateHandler(ctx context.Context, m *Message) (string, error) {
-	return uc.doEvent(ctx, m)
-}
-
-func (uc *EventUseCase) groupHandler(ctx context.Context, m *Message) (string, error) {
-	if err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
-		_, err := uc.group.GetByID(ctx, tx, m.GroupID.Int64)
-		return err
-	}); err != nil {
-		// 只显示主要原因, 抛弃栈信息
-		return "", errors.WithMessage(errors.Cause(err), strconv.Itoa(int(m.GroupID.Int64)))
-	}
-	return uc.doEvent(ctx, m)
-	// TODO at Sender
-	//return api.Replies{Replies: reply, ATSender: true}, nil
+	return reply, err
 }
 
 func (uc *EventUseCase) doEvent(ctx context.Context, m *Message) (string, error) {
 	// 等待3秒 回复
-	defer time.Sleep(time.Second * 3)
+	defer time.Sleep(time.Second * 2)
 	defer logs.Info("reply", "content", m.Reply)
 
-	// TODO 匹配简单回复
+	// 匹配简单回复
 	return ReplyMethod(ctx, uc, m)
 }
 

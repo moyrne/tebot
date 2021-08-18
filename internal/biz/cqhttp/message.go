@@ -23,21 +23,10 @@ type Message struct {
 	Font        int           `json:"font"`         // 字体
 	Reply       string        `json:"reply"`        // 回复
 
-	User *User `json:"q_user"` // User 信息
+	User *User `json:"user"` // User 信息
 }
 
 type MessageRepo interface {
 	Save(ctx context.Context, tx dbx.Transaction, message *Message) error
 	SetReply(ctx context.Context, tx dbx.Transaction, id int64, reply string) error
-}
-
-func NewMessageUseCase(msg MessageRepo, user UserRepo, signIn SignInRepo) *EventUseCase {
-	return &EventUseCase{message: msg, user: user, signIn: signIn}
-}
-
-type EventUseCase struct {
-	message MessageRepo
-	user    UserRepo
-	signIn  SignInRepo
-	group   GroupRepo
 }

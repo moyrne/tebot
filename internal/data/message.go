@@ -9,12 +9,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-var _ cqhttp.MessageRepo = MessageData{}
+var _ cqhttp.MessageRepo = messageRepo{}
 
-// MessageData 聊天记录持久化
-type MessageData struct{}
+// messageRepo 聊天记录持久化
+type messageRepo struct{}
 
-func (q MessageData) Save(ctx context.Context, tx dbx.Transaction, m *cqhttp.Message) error {
+func NewMessageRepo() cqhttp.MessageRepo {
+	return messageRepo{}
+}
+
+func (q messageRepo) Save(ctx context.Context, tx dbx.Transaction, m *cqhttp.Message) error {
 	query := `insert into q_message (time,self_id,post_type,message_type,sub_type,temp_source,message_id,group_id,user_id,message,raw_message,font) values (?,?,?,?,?,?,?,?,?,?,?,?)`
 	result, err := tx.ExecContext(ctx, query, m.Time, m.SelfID, m.PostType, m.MessageType, m.SubType, m.TempSource, m.MessageID, m.GroupID, m.UserID, m.Message, m.RawMessage, m.Font)
 	if err != nil {
@@ -24,7 +28,7 @@ func (q MessageData) Save(ctx context.Context, tx dbx.Transaction, m *cqhttp.Mes
 	return errors.WithStack(err)
 }
 
-func (q MessageData) SetReply(ctx context.Context, tx dbx.Transaction, id int64, reply string) error {
+func (q messageRepo) SetReply(ctx context.Context, tx dbx.Transaction, id int64, reply string) error {
 	query := `update q_message set reply = ? where id = ?`
 	r, err := tx.ExecContext(ctx, query, reply, id)
 	if err != nil {

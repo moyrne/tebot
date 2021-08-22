@@ -21,6 +21,7 @@ type EventRepo interface {
 	GetUserByUserID(ctx context.Context, tx dbx.Transaction, id int64) (*User, error)
 	SaveUser(ctx context.Context, tx dbx.Transaction, u *User) error
 	UpdateUserArea(ctx context.Context, tx dbx.Transaction, userID int64, area string) error
+	Log(ctx context.Context, tx dbx.Transaction, log *Log) error
 }
 
 func NewMessageUseCase(repo EventRepo) *EventUseCase {

@@ -1,5 +1,10 @@
 package cqhttp
 
+import (
+	"context"
+	"github.com/moyrne/tractor/dbx"
+)
+
 type Reply struct {
 	ID      int64  `json:"id"`
 	UserID  int64  `json:"user_id"`
@@ -9,4 +14,8 @@ type Reply struct {
 	Function string `json:"function"`
 
 	Replies string `json:"replies"`
+}
+
+type ReplyRepo interface {
+	Replies(ctx context.Context, tx dbx.Transaction) ([]Reply, error)
 }

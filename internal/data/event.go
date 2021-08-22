@@ -8,15 +8,27 @@ import (
 
 var _ cqhttp.EventRepo = eventRepo{}
 
-func NewEventRepo() cqhttp.EventRepo {
-	return eventRepo{}
+func NewEventRepo(
+	group cqhttp.GroupRepo,
+	message cqhttp.MessageRepo,
+	signIn cqhttp.SignInRepo,
+	user cqhttp.UserRepo,
+	log cqhttp.LogRepo) cqhttp.EventRepo {
+	return eventRepo{
+		group:   groupRepo{},
+		message: messageRepo{},
+		signIn:  signInRepo{},
+		user:    userRepo{},
+		log:     logRepo{},
+	}
 }
 
 type eventRepo struct {
-	group   groupRepo
-	message messageRepo
-	signIn  signInRepo
-	user    userRepo
+	group   cqhttp.GroupRepo
+	message cqhttp.MessageRepo
+	signIn  cqhttp.SignInRepo
+	user    cqhttp.UserRepo
+	log     cqhttp.LogRepo
 }
 
 func (e eventRepo) SaveMessage(ctx context.Context, tx dbx.Transaction, message *cqhttp.Message) error {
@@ -49,4 +61,8 @@ func (e eventRepo) SaveUser(ctx context.Context, tx dbx.Transaction, u *cqhttp.U
 
 func (e eventRepo) UpdateUserArea(ctx context.Context, tx dbx.Transaction, userID int64, area string) error {
 	return e.user.UpdateArea(ctx, tx, userID, area)
+}
+
+func (e eventRepo) Log(ctx context.Context, tx dbx.Transaction, log *cqhttp.Log) error {
+	return e.log.Save(ctx, tx, log)
 }

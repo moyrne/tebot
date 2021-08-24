@@ -8,6 +8,7 @@ import (
 
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/logs"
+	"github.com/moyrne/tebot/internal/pkg/autoreply"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )
@@ -24,8 +25,15 @@ type EventRepo interface {
 	Log(ctx context.Context, tx dbx.Transaction, log *Log) error
 }
 
-func NewMessageUseCase(repo EventRepo) *EventUseCase {
-	return &EventUseCase{repo: repo}
+func NewEventUsecase(repo EventRepo) *EventUseCase {
+	useCase := &EventUseCase{repo: repo}
+	autoreply.RegisterMatches("Equal", Equal)
+	autoreply.RegisterMatches("Prefix", Prefix)
+
+	autoreply.RegisterFunctions("PrintMenu", PrintMenu)
+	autoreply.RegisterFunctions("SignInMethod", SignInMethod(useCase))
+	autoreply.RegisterFunctions("BindAreaMethod", BindAreaMethod(useCase))
+	return useCase
 }
 
 type EventUseCase struct {
@@ -45,9 +53,23 @@ type EventReply struct {
 const (
 	MTPrivate = "private"
 	MTGroup   = "group"
+
+	TSGroup       = "group"       // 群聊
+	TSConsult     = "consult"     // QQ咨询
+	TSSearch      = "search"      // 查找
+	TSFilm        = "film"        // QQ电影
+	TSHotTalk     = "hottalk"     // 热聊
+	TSVerify      = "verify"      // 验证消息
+	TSMultiChat   = "multichat"   // 多人聊天
+	TSAppointment = "appointment" // 约会
+	TSMailList    = "maillist"    // 通讯录
 )
 
 func (uc *EventUseCase) Event(ctx context.Context, m *Message) (reply EventReply, err error) {
+	if err := rateLimiter.Rate(ctx, "cq_event", m.UserID); err != nil {
+		return reply, err
+	}
+
 	if err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
 		if err := uc.repo.SaveUser(ctx, tx, m.User); err != nil {
 			return err
@@ -97,45 +119,11 @@ func (uc *EventUseCase) doEvent(ctx context.Context, m *Message) (string, error)
 	defer logs.Info("reply", "content", m.Reply)
 
 	// 匹配简单回复
-	return ReplyMethod(ctx, uc, m)
+	return autoreply.Reply(ctx, &autoreply.Message{
+		UserID:  strconv.Itoa(int(m.UserID)),
+		Message: m.Message,
+	})
 }
-
-const (
-	TSGroup       = "group"       // 群聊
-	TSConsult     = "consult"     // QQ咨询
-	TSSearch      = "search"      // 查找
-	TSFilm        = "film"        // QQ电影
-	TSHotTalk     = "hottalk"     // 热聊
-	TSVerify      = "verify"      // 验证消息
-	TSMultiChat   = "multichat"   // 多人聊天
-	TSAppointment = "appointment" // 约会
-	TSMailList    = "maillist"    // 通讯录
-)
-
-type Menu struct {
-	Name string
-	Fn   func(ctx context.Context, uc *EventUseCase, m *Message) (string, error)
-}
-
-type Match struct {
-	Name string
-	Fn   func(s, v string) bool
-}
-
-// TODO 抽离 数据库内容，封装到 pkg 中
-var (
-	Functions = map[string]Menu{
-		"PrintMenu":      {Name: "menu", Fn: PrintMenu},
-		"SignInMethod":   {Name: "签到", Fn: SignInMethod},
-		"BindAreaMethod": {Name: "绑定位置", Fn: BindAreaMethod},
-	}
-	Matches = map[string]Match{
-		"Equal":  {Name: "Equal", Fn: Equal},
-		"Prefix": {Name: "Prefix", Fn: Prefix},
-	}
-)
-
-var ErrNotMatch = errors.New("not match")
 
 func Equal(s, v string) bool {
 	return strings.ReplaceAll(s, " ", "") == strings.ReplaceAll(v, " ", "")

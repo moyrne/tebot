@@ -2,9 +2,10 @@ package data
 
 import (
 	"context"
-	"github.com/moyrne/tebot/internal/biz/cqhttp"
 	"time"
 
+	"github.com/moyrne/tebot/internal/biz/cqhttp"
+	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )
@@ -25,4 +26,14 @@ func (l logRepo) Save(ctx context.Context, tx dbx.Transaction, log *cqhttp.Log) 
 	}
 	log.ID, err = result.LastInsertId()
 	return errors.WithStack(err)
+}
+
+func (l logRepo) Write(data []byte) (int, error) {
+	err := database.NewTransaction(context.Background(), func(ctx context.Context, tx dbx.Transaction) error {
+		return l.Save(ctx, tx, &cqhttp.Log{
+			CreateAt: time.Now(),
+			Detail:   string(data),
+		})
+	})
+	return len(data), err
 }

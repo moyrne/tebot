@@ -2,6 +2,7 @@ package cqhttp
 
 import (
 	"context"
+
 	"github.com/moyrne/tractor/dbx"
 )
 

@@ -1,4 +1,4 @@
-package cqhttp
+package api
 
 import (
 	"context"

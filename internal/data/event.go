@@ -2,18 +2,14 @@ package data
 
 import (
 	"context"
+
 	"github.com/moyrne/tebot/internal/biz/cqhttp"
 	"github.com/moyrne/tractor/dbx"
 )
 
 var _ cqhttp.EventRepo = eventRepo{}
 
-func NewEventRepo(
-	group cqhttp.GroupRepo,
-	message cqhttp.MessageRepo,
-	signIn cqhttp.SignInRepo,
-	user cqhttp.UserRepo,
-	log cqhttp.LogRepo) cqhttp.EventRepo {
+func NewEventRepo() cqhttp.EventRepo {
 	return eventRepo{
 		group:   groupRepo{},
 		message: messageRepo{},

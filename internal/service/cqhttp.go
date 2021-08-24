@@ -1,10 +1,9 @@
-package cqhttp
+package service
 
 import (
 	"context"
 	"database/sql"
-
-	api "github.com/moyrne/tebot/api/cqhttp"
+	"github.com/moyrne/tebot/api"
 	"github.com/moyrne/tebot/internal/biz/cqhttp"
 	"github.com/moyrne/tebot/internal/logs"
 	"github.com/moyrne/tebot/internal/pkg/keepalive"
@@ -18,12 +17,16 @@ const (
 	MTGroup   = "group"
 )
 
-type Server struct {
+func NewEventServer(repo cqhttp.EventRepo) EventServer {
+	return EventServer{biz: cqhttp.NewEventUsecase(repo)}
+}
+
+type EventServer struct {
 	biz *cqhttp.EventUseCase
 }
 
 // Event 文档 https://github.com/ishkong/go-cqhttp-docs/tree/main/docs/event
-func (s Server) Event(ctx context.Context, m api.QMessage) (api.Reply, error) {
+func (s EventServer) Event(ctx context.Context, m api.QMessage) (api.Reply, error) {
 	if m.PostType == PTEvent {
 		// 忽略 心跳检测
 		keepalive.CQHeartBeat()

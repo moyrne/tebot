@@ -2,8 +2,9 @@ package cqhttp
 
 import (
 	"context"
-	"github.com/moyrne/tractor/dbx"
 	"time"
+
+	"github.com/moyrne/tractor/dbx"
 )
 
 type Log struct {
@@ -14,4 +15,5 @@ type Log struct {
 
 type LogRepo interface {
 	Save(ctx context.Context, tx dbx.Transaction, log *Log) error
+	Write([]byte) (int, error)
 }

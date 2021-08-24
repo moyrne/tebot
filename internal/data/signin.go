@@ -3,15 +3,14 @@ package data
 import (
 	"context"
 	"database/sql"
-	"github.com/moyrne/tebot/internal/biz/cqhttp"
 	"time"
 
+	"github.com/moyrne/tebot/internal/biz/cqhttp"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )
 
 var _ cqhttp.SignInRepo = signInRepo{}
-var ErrAlreadySignIn = errors.New("already sign in today")
 
 type signInRepo struct{}
 
@@ -21,10 +20,10 @@ func NewSignInRepo() cqhttp.SignInRepo {
 
 func (s signInRepo) GetByUserID(ctx context.Context, tx dbx.Transaction, userID int64) (cqhttp.SignIn, error) {
 	var signIn cqhttp.SignIn
-	query := `select * from q_sign_in where quid = ? and day>= ?`
+	query := `select * from sign_in where user_id = ? and day>= ?`
 	err := tx.GetContext(ctx, &signIn, query, userID, time.Now().Format("2006-01-02"))
 	if err == nil {
-		return signIn, errors.WithStack(ErrAlreadySignIn)
+		return signIn, errors.WithStack(cqhttp.ErrAlreadySignIn)
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
 		return signIn, errors.WithStack(err)
@@ -36,7 +35,7 @@ func (s signInRepo) Save(ctx context.Context, tx dbx.Transaction, signIn *cqhttp
 	if _, err := s.GetByUserID(ctx, tx, signIn.UserID); err != nil {
 		return err
 	}
-	query := `insert into q_sign_in (quid,create_at,day) values (?,?,?)`
+	query := `insert into sign_in (user_id,create_at,day) values (?,?,?)`
 	result, err := tx.ExecContext(ctx, query, signIn.UserID, time.Now(), time.Now().Format("2006-01-02"))
 	if err != nil {
 		return errors.WithStack(err)

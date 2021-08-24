@@ -2,10 +2,10 @@ package data
 
 import (
 	"context"
+
 	"github.com/moyrne/tebot/internal/biz/cqhttp"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tractor/dbx"
-
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +19,7 @@ func NewMessageRepo() cqhttp.MessageRepo {
 }
 
 func (q messageRepo) Save(ctx context.Context, tx dbx.Transaction, m *cqhttp.Message) error {
-	query := `insert into q_message (time,self_id,post_type,message_type,sub_type,temp_source,message_id,group_id,user_id,message,raw_message,font) values (?,?,?,?,?,?,?,?,?,?,?,?)`
+	query := `insert into message (time,self_id,post_type,message_type,sub_type,temp_source,message_id,group_id,user_id,message,raw_message,font) values (?,?,?,?,?,?,?,?,?,?,?,?)`
 	result, err := tx.ExecContext(ctx, query, m.Time, m.SelfID, m.PostType, m.MessageType, m.SubType, m.TempSource, m.MessageID, m.GroupID, m.UserID, m.Message, m.RawMessage, m.Font)
 	if err != nil {
 		return errors.WithStack(err)

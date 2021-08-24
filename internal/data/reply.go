@@ -2,8 +2,8 @@ package data
 
 import (
 	"context"
-	"github.com/moyrne/tebot/internal/biz/cqhttp"
 
+	"github.com/moyrne/tebot/internal/biz/cqhttp"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )

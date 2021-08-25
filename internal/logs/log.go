@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var logs = &log.Logger{}
+var logs = log.New(os.Stdout, "", log.LstdFlags)
 
 func Init(out ...io.Writer) {
 	// 输出到文件

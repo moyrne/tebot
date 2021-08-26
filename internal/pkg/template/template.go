@@ -7,8 +7,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO 转移至 pkg
-
 type Template struct {
 	*template.Template
 }

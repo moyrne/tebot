@@ -21,5 +21,7 @@ func InitRate(limit RateLimit) {
 }
 
 func Rate(ctx context.Context, name, userID string) error {
+	mu.RLocker()
+	defer mu.RUnlock()
 	return rate.Rate(ctx, name, userID)
 }

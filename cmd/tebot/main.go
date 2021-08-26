@@ -2,19 +2,19 @@ package main
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/moyrne/tebot/api"
-	"github.com/moyrne/tebot/internal/biz/cqhttp"
-	"github.com/moyrne/tebot/internal/data"
-	"github.com/moyrne/tebot/internal/pkg/keepalive"
-	"github.com/moyrne/tebot/internal/service"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 
+	"github.com/gin-gonic/gin"
+	"github.com/moyrne/tebot/api"
 	"github.com/moyrne/tebot/configs"
+	"github.com/moyrne/tebot/internal/biz"
+	"github.com/moyrne/tebot/internal/data"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/logs"
+	"github.com/moyrne/tebot/internal/pkg/keepalive"
+	"github.com/moyrne/tebot/internal/service"
 )
 
 func main() {
@@ -47,10 +47,10 @@ func main() {
 	go keepalive.StartCQHTTP()
 
 	// 初始化限流
-	cqhttp.InitLimiter()
+	biz.InitLimiter()
 
 	// 启动自动回复 同步
-	cqhttp.SyncReply(context.Background(), data.NewReplyRepo())
+	biz.SyncReply(context.Background(), data.NewReplyRepo())
 
 	// 启动WEB服务
 	gin.SetMode(gin.DebugMode)

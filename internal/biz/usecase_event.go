@@ -1,4 +1,4 @@
-package cqhttp
+package biz
 
 import (
 	"context"
@@ -25,7 +25,7 @@ type EventRepo interface {
 	Log(ctx context.Context, tx dbx.Transaction, log *Log) error
 }
 
-func NewEventUsecase(repo EventRepo) *EventUseCase {
+func NewEventUseCase(repo EventRepo) *EventUseCase {
 	useCase := &EventUseCase{repo: repo}
 	autoreply.RegisterMatches("Equal", Equal)
 	autoreply.RegisterMatches("Prefix", Prefix)

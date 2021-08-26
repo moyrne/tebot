@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"database/sql"
+
 	"github.com/moyrne/tebot/api"
-	"github.com/moyrne/tebot/internal/biz/cqhttp"
+	"github.com/moyrne/tebot/internal/biz"
 	"github.com/moyrne/tebot/internal/logs"
 	"github.com/moyrne/tebot/internal/pkg/keepalive"
 )
@@ -17,12 +18,12 @@ const (
 	MTGroup   = "group"
 )
 
-func NewEventServer(repo cqhttp.EventRepo) EventServer {
-	return EventServer{biz: cqhttp.NewEventUsecase(repo)}
+func NewEventServer(repo biz.EventRepo) EventServer {
+	return EventServer{biz: biz.NewEventUseCase(repo)}
 }
 
 type EventServer struct {
-	biz *cqhttp.EventUseCase
+	biz *biz.EventUseCase
 }
 
 // Event 文档 https://github.com/ishkong/go-cqhttp-docs/tree/main/docs/event
@@ -44,8 +45,8 @@ func (s EventServer) Event(ctx context.Context, m api.QMessage) (api.Reply, erro
 	return api.Reply{Reply: reply.Reply, ATSender: reply.ATSender}, err
 }
 
-func ToQMessage(m api.QMessage) *cqhttp.Message {
-	return &cqhttp.Message{
+func ToQMessage(m api.QMessage) *biz.Message {
+	return &biz.Message{
 		ID:          int64(m.ID),
 		Time:        m.Time,
 		SelfID:      m.SelfID,
@@ -61,7 +62,7 @@ func ToQMessage(m api.QMessage) *cqhttp.Message {
 		Message:    m.Message,
 		RawMessage: m.RawMessage,
 		Font:       m.Font,
-		User: &cqhttp.User{
+		User: &biz.User{
 			UserID:   m.Sender.UserID,
 			Nickname: m.Sender.Nickname,
 			Sex:      m.Sender.Sex,
@@ -73,9 +74,9 @@ func ToQMessage(m api.QMessage) *cqhttp.Message {
 func ToMessageType(t string) string {
 	switch t {
 	case MTPrivate:
-		return cqhttp.MTPrivate
+		return biz.MTPrivate
 	case MTGroup:
-		return cqhttp.MTGroup
+		return biz.MTGroup
 	default:
 		return "unknown"
 	}
@@ -87,23 +88,23 @@ func ToTempSource(s *api.TempSource) string {
 	}
 	switch *s {
 	case api.TSGroup:
-		return cqhttp.TSGroup // 群聊
+		return biz.TSGroup // 群聊
 	case api.TSConsult:
-		return cqhttp.TSConsult // QQ咨询
+		return biz.TSConsult // QQ咨询
 	case api.TSSearch:
-		return cqhttp.TSSearch // 查找
+		return biz.TSSearch // 查找
 	case api.TSFilm:
-		return cqhttp.TSFilm // QQ电影
+		return biz.TSFilm // QQ电影
 	case api.TSHotTalk:
-		return cqhttp.TSHotTalk // 热聊
+		return biz.TSHotTalk // 热聊
 	case api.TSVerify:
-		return cqhttp.TSVerify // 验证消息
+		return biz.TSVerify // 验证消息
 	case api.TSMultiChat:
-		return cqhttp.TSMultiChat // 多人聊天
+		return biz.TSMultiChat // 多人聊天
 	case api.TSAppointment:
-		return cqhttp.TSAppointment // 约会
+		return biz.TSAppointment // 约会
 	case api.TSMailList:
-		return cqhttp.TSMailList // 通讯录
+		return biz.TSMailList // 通讯录
 	default:
 		return "unknown"
 	}

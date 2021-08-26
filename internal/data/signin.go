@@ -5,25 +5,25 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/moyrne/tebot/internal/biz/cqhttp"
+	"github.com/moyrne/tebot/internal/biz"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )
 
-var _ cqhttp.SignInRepo = signInRepo{}
+var _ biz.SignInRepo = signInRepo{}
 
 type signInRepo struct{}
 
-func NewSignInRepo() cqhttp.SignInRepo {
+func NewSignInRepo() biz.SignInRepo {
 	return signInRepo{}
 }
 
-func (s signInRepo) GetByUserID(ctx context.Context, tx dbx.Transaction, userID int64) (cqhttp.SignIn, error) {
-	var signIn cqhttp.SignIn
+func (s signInRepo) GetByUserID(ctx context.Context, tx dbx.Transaction, userID int64) (biz.SignIn, error) {
+	var signIn biz.SignIn
 	query := `select * from sign_in where user_id = ? and day>= ?`
 	err := tx.GetContext(ctx, &signIn, query, userID, time.Now().Format("2006-01-02"))
 	if err == nil {
-		return signIn, errors.WithStack(cqhttp.ErrAlreadySignIn)
+		return signIn, errors.WithStack(biz.ErrAlreadySignIn)
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
 		return signIn, errors.WithStack(err)
@@ -31,7 +31,7 @@ func (s signInRepo) GetByUserID(ctx context.Context, tx dbx.Transaction, userID 
 	return signIn, nil
 }
 
-func (s signInRepo) Save(ctx context.Context, tx dbx.Transaction, signIn *cqhttp.SignIn) error {
+func (s signInRepo) Save(ctx context.Context, tx dbx.Transaction, signIn *biz.SignIn) error {
 	if _, err := s.GetByUserID(ctx, tx, signIn.UserID); err != nil {
 		return err
 	}

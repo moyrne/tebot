@@ -4,25 +4,25 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/moyrne/tebot/internal/biz/cqhttp"
+	"github.com/moyrne/tebot/internal/biz"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )
 
 // 编译期检验interface实现
-var _ cqhttp.UserRepo = userRepo{}
+var _ biz.UserRepo = userRepo{}
 
 // 持久层实现
 
 type userRepo struct{}
 
-func NewUserRepo() cqhttp.UserRepo {
+func NewUserRepo() biz.UserRepo {
 	return userRepo{}
 }
 
-func (u userRepo) GetByUserID(ctx context.Context, tx dbx.Transaction, userID int64) (*cqhttp.User, error) {
-	var user cqhttp.User
+func (u userRepo) GetByUserID(ctx context.Context, tx dbx.Transaction, userID int64) (*biz.User, error) {
+	var user biz.User
 	query := `select * from user where user_id = ?`
 	err := tx.GetContext(ctx, &user, query, userID)
 	if err != nil {
@@ -31,7 +31,7 @@ func (u userRepo) GetByUserID(ctx context.Context, tx dbx.Transaction, userID in
 	return &user, nil
 }
 
-func (u userRepo) Save(ctx context.Context, tx dbx.Transaction, user *cqhttp.User) error {
+func (u userRepo) Save(ctx context.Context, tx dbx.Transaction, user *biz.User) error {
 	query := `select * from user where user_id = ? for update`
 	err := tx.GetContext(ctx, u, query, user.UserID)
 	if err == nil {

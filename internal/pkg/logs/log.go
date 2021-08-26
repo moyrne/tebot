@@ -67,23 +67,23 @@ func Panic(v string, kv ...interface{}) {
 func logValue(value *LogValue, kv ...interface{}) string {
 	kvl := len(kv)
 	if kvl%2 != 0 {
-		return logKVV(value, kv)
+		return logErrorValue(value, kv)
 	}
 	value.Time = time.Now()
 	value.Detail = map[string]interface{}{}
 	for i := 0; i < kvl-1; i += 2 {
 		key, ok := kv[i].(string)
 		if !ok {
-			return logKVV(value, kv)
+			return logErrorValue(value, kv)
 		}
 		value.Detail[key] = fmt.Sprintf("%+v", kv[i+1])
 	}
 	return marshalLog(value)
 }
 
-func logKVV(value *LogValue, kv ...interface{}) string {
+func logErrorValue(value *LogValue, kv ...interface{}) string {
 	value.Detail = map[string]interface{}{
-		"kvv": kv,
+		"value": kv,
 	}
 	return marshalLog(value)
 }

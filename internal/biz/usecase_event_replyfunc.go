@@ -8,6 +8,7 @@ import (
 
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/pkg/autoreply"
+	"github.com/moyrne/tebot/internal/pkg/template"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/moyrne/weather"
 	"github.com/pkg/errors"
@@ -42,12 +43,12 @@ func BindAreaMethod(uc *EventUseCase) func(ctx context.Context, m *autoreply.Mes
 
 var (
 	weComCn    weather.Weather = weather.WeComCn{}
-	signInTemp *Template
+	signInTemp *template.Template
 )
 
 func init() {
 	var err error
-	signInTemp, err = NewTemplate("SignIn", `签到成功！
+	signInTemp, err = template.NewTemplate("SignIn", `签到成功！
 ๑ 今日天气
 ๑ {{.Time}}
 ๑ {{.City}}

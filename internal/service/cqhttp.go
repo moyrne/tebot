@@ -6,8 +6,8 @@ import (
 
 	"github.com/moyrne/tebot/api"
 	"github.com/moyrne/tebot/internal/biz"
-	"github.com/moyrne/tebot/internal/logs"
 	"github.com/moyrne/tebot/internal/pkg/keepalive"
+	"github.com/moyrne/tebot/internal/pkg/logs"
 )
 
 // TODO 定义标准 const

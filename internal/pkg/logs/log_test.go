@@ -3,11 +3,12 @@ package logs
 import (
 	"bytes"
 	"errors"
-	"github.com/agiledragon/gomonkey"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/agiledragon/gomonkey"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLog(t *testing.T) {

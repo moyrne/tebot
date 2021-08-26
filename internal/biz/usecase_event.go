@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/moyrne/tebot/internal/database"
-	"github.com/moyrne/tebot/internal/logs"
 	"github.com/moyrne/tebot/internal/pkg/autoreply"
+	"github.com/moyrne/tebot/internal/pkg/logs"
+	"github.com/moyrne/tebot/internal/pkg/ratelimit"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
 )
@@ -66,7 +67,7 @@ const (
 )
 
 func (uc *EventUseCase) Event(ctx context.Context, m *Message) (reply EventReply, err error) {
-	if err := rateLimiter.Rate(ctx, "cq_event", m.UserID); err != nil {
+	if err := ratelimit.Rate(ctx, "cq_event", strconv.Itoa(int(m.UserID))); err != nil {
 		return reply, err
 	}
 

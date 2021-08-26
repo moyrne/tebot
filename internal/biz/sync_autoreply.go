@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/moyrne/tebot/internal/database"
-	"github.com/moyrne/tebot/internal/logs"
 	"github.com/moyrne/tebot/internal/pkg/autoreply"
+	"github.com/moyrne/tebot/internal/pkg/logs"
 	"github.com/moyrne/tractor/dbx"
 )
 

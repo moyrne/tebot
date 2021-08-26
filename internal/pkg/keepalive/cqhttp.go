@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/moyrne/tebot/internal/logs"
+	"github.com/moyrne/tebot/internal/pkg/logs"
 	"github.com/moyrne/tractor/syncx"
 	"github.com/pkg/errors"
 )

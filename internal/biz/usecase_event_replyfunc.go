@@ -2,10 +2,10 @@ package biz
 
 import (
 	"context"
+	"log"
 	"strconv"
 	"strings"
 
-	"github.com/moyrne/tebot/internal/biz/cqhttp/template"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/pkg/autoreply"
 	"github.com/moyrne/tractor/dbx"
@@ -40,7 +40,24 @@ func BindAreaMethod(uc *EventUseCase) func(ctx context.Context, m *autoreply.Mes
 	}
 }
 
-var weComCn weather.Weather = weather.WeComCn{}
+var (
+	weComCn    weather.Weather = weather.WeComCn{}
+	signInTemp *Template
+)
+
+func init() {
+	var err error
+	signInTemp, err = NewTemplate("SignIn", `签到成功！
+๑ 今日天气
+๑ {{.Time}}
+๑ {{.City}}
+๑ {{.Weather}}
+๑ {{.Wd}}  {{.Ws}}
+๑ {{.Temperature}}℃~{{.TemperatureN}}℃`)
+	if err != nil {
+		log.Panicf("parse signin template error %v", errors.WithStack(err))
+	}
+}
 
 func SignInMethod(uc *EventUseCase) func(ctx context.Context, m *autoreply.Message) (string, error) {
 	return func(ctx context.Context, m *autoreply.Message) (string, error) {
@@ -76,7 +93,29 @@ func SignInMethod(uc *EventUseCase) func(ctx context.Context, m *autoreply.Messa
 		if err != nil {
 			return "", err
 		}
-		return template.Marshal.Template(template.SingInKey).Execute(template.SingInParam(wt))
+		return signInTemp.Execute(signParam(wt))
+	}
+}
+
+type SignInData struct {
+	City         string `json:"city"`          // 城市
+	Temperature  string `json:"temperature"`   // 最低气温
+	TemperatureN string `json:"temperature_n"` // 最高气温
+	Weather      string `json:"weather"`       // 天气
+	Wd           string `json:"wd"`            // 风向
+	Ws           string `json:"ws"`            // 风速
+	Time         string `json:"time"`          // 时间
+}
+
+func signParam(data weather.Data) SignInData {
+	return SignInData{
+		City:         data.City,
+		Temperature:  data.Temperature,
+		TemperatureN: data.TemperatureN,
+		Weather:      data.Weather,
+		Wd:           data.Wd,
+		Ws:           data.Ws,
+		Time:         data.Time.Format("2006-01-02"),
 	}
 }
 

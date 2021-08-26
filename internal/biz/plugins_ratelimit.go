@@ -9,6 +9,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO 转移至 pkg
+
 type Limiter struct {
 	limiter *redis_rate.Limiter
 }

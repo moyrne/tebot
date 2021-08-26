@@ -8,10 +8,10 @@ import (
 
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/pkg/autoreply"
-	"github.com/moyrne/tebot/internal/pkg/logs"
 	"github.com/moyrne/tebot/internal/pkg/ratelimit"
 	"github.com/moyrne/tractor/dbx"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 type EventRepo interface {
@@ -77,7 +77,7 @@ func (uc *EventUseCase) Event(ctx context.Context, m *Message) (reply EventReply
 		}
 		return uc.repo.SaveMessage(ctx, tx, m)
 	}); err != nil {
-		logs.Error("event message save", "error", err)
+		logrus.Errorf("event message save error %v\n", err)
 	}
 
 	// User Filter, 检查是否被禁用
@@ -117,7 +117,7 @@ func (uc *EventUseCase) Event(ctx context.Context, m *Message) (reply EventReply
 func (uc *EventUseCase) doEvent(ctx context.Context, m *Message) (string, error) {
 	// 等待3秒 回复
 	defer time.Sleep(time.Second * 2)
-	defer logs.Info("reply", "content", m.Reply)
+	defer logrus.Infof("do event reply %s\n", m.Reply)
 
 	// 匹配简单回复
 	return autoreply.Reply(ctx, &autoreply.Message{

@@ -7,9 +7,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/moyrne/tebot/internal/pkg/logs"
 	"github.com/moyrne/tractor/syncx"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 var netNormal = int32(1)
@@ -22,7 +22,7 @@ func StartCQHTTP() {
 		syncx.Safe(func() {
 			// 拉起cqhttp进程
 			if err := startCQHTTP(); err != nil {
-				logs.Error("start cqhttp", "error", err)
+				logrus.Errorf("start cqhttp error %s\n", err)
 				time.Sleep(time.Second)
 			}
 			// 当进程退出时, 检测网络状态, 判断是否重新拉起
@@ -54,7 +54,7 @@ func ping() bool {
 	cmd := exec.Command("ping", "www.baidu.com", "-c", "1", "-W", "5")
 	out, err := cmd.Output()
 	if err != nil {
-		logs.Error("ping", "error", err, "msg", string(out))
+		logrus.Errorf("ping error: %v; msg: %s\n", err, string(out))
 		return false
 	}
 	return true
@@ -99,7 +99,7 @@ func cqHeartbeat(cqCmd *exec.Cmd, done chan struct{}) {
 		case <-heartbeat:
 			window[0], window[1], window[2] = true, true, true
 		case <-timer.C:
-			logs.Error("cqhttp heartbeat overtime")
+			logrus.Errorf("cqhttp heartbeat overtime")
 			// 心跳出错
 			window[0], window[1], window[2] = window[1], window[2], false
 			if !window[0] && !window[1] && !window[2] {
@@ -113,7 +113,7 @@ func cqHeartbeat(cqCmd *exec.Cmd, done chan struct{}) {
 func killProcess(cqCmd *exec.Cmd) {
 	if cqCmd != nil && cqCmd.Process != nil {
 		if err := cqCmd.Process.Kill(); err != nil {
-			logs.Error("cqhttp kill", "error", err)
+			logrus.Errorf("cqhttp kill error %v\n", err)
 			return
 		}
 	}

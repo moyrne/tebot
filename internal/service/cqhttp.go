@@ -8,6 +8,7 @@ import (
 	"github.com/moyrne/tebot/internal/biz"
 	"github.com/moyrne/tebot/internal/pkg/keepalive"
 	"github.com/moyrne/tebot/internal/pkg/logs"
+	"github.com/sirupsen/logrus"
 )
 
 // TODO 定义标准 const
@@ -36,7 +37,7 @@ func (s EventServer) Event(ctx context.Context, m api.QMessage) (api.Reply, erro
 
 	if m.PostType != PTMessage {
 		// 忽略 非消息事件
-		logs.Error("unknown params", "params", m)
+		logrus.Errorf("unknown params %s\n", logs.JSONMarshalIgnoreErr(m))
 		return api.Reply{}, nil
 	}
 

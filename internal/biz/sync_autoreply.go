@@ -11,6 +11,7 @@ import (
 	"github.com/moyrne/tebot/internal/pkg/autoreply"
 	"github.com/moyrne/tebot/internal/pkg/logs"
 	"github.com/moyrne/tractor/dbx"
+	"github.com/sirupsen/logrus"
 )
 
 // SyncReply 同步 回复
@@ -31,7 +32,7 @@ func delaySync(ctx context.Context, repo ReplyRepo) {
 		replies, err = repo.Replies(ctx, tx)
 		return err
 	}); err != nil {
-		logs.Error("sync reply", "error", err)
+		logrus.Errorf("sync reply error %v\n", err)
 		return
 	}
 
@@ -46,7 +47,7 @@ func delaySync(ctx context.Context, repo ReplyRepo) {
 		}
 		var r []string
 		if err := json.Unmarshal([]byte(reply.Replies), &r); err != nil {
-			logs.Error("delay sync unmarshal", "data", reply, "error", err)
+			logrus.Errorf("delay sync unmarshal data: %s; error: %v\n", logs.JSONMarshalIgnoreErr(reply), err)
 			continue
 		}
 		repliesMap[userID][reply.Msg] = autoreply.ReplyRow{

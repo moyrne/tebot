@@ -1,3 +1,5 @@
+Server:
+  Addr: "0.0.0.0:7771"
 DB:
   Host: "localhost"
   Port: 5432

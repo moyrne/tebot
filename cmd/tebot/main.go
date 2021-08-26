@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
-	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/moyrne/tebot/internal/pkg/logs"
 	"github.com/moyrne/tebot/internal/pkg/ratelimit"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 
 	"github.com/gin-gonic/gin"
 	"github.com/moyrne/tebot/api"
@@ -19,30 +20,32 @@ import (
 )
 
 func main() {
+	// Json 格式化
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+
 	// 加载配置文件
 	if err := configs.LoadConfig(); err != nil {
-		log.Fatalln("read config error", err)
+		logrus.Panicf("read config error %v\n", err)
 	}
-
-	// 初始化日志文件
-	writer, err := logs.FileWriter()
-	if err != nil {
-		log.Fatalln("new file writer error", err)
-	}
-	defer writer.Close()
 
 	// 连接数据库
 	if err := database.ConnectMySQL(); err != nil {
-		logs.Panic("db connect", "error", err)
+		logrus.Panicf("db connect error %v\n", err)
 	}
 
 	// 连接Redis
 	if err := database.ConnectRedis(); err != nil {
-		logs.Panic("redis connect", "error", err)
+		logrus.Panicf("redis connect error %v\n", err)
 	}
 
 	// 初始化日志
-	logs.Init(writer, data.NewLogRepo())
+	hook, cl, err := logs.NewFileHook(viper.GetString("LogValue.Filename"))
+	if err != nil {
+		logrus.Panicf("init logrus error %v\n", err)
+	}
+	defer cl()
+	logrus.AddHook(hook)
+	logrus.AddHook(biz.NewDBHook(database.DB, data.NewLogRepo()))
 
 	// 心跳检测
 	go keepalive.StartCQHTTP()
@@ -57,7 +60,7 @@ func main() {
 	gin.SetMode(gin.DebugMode)
 	e := gin.Default()
 	api.RegisterServer(e, service.NewEventServer(data.NewEventRepo()))
-	if err := e.Run("127.0.0.1:7771"); err != nil {
-		logs.Panic("service run", "error", err)
+	if err := e.Run(viper.GetString("Server.Addr")); err != nil {
+		logrus.Panicf("service run error %v\n", err)
 	}
 }

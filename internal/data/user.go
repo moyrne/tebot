@@ -33,7 +33,7 @@ func (u userRepo) GetByUserID(ctx context.Context, tx dbx.Transaction, userID in
 
 func (u userRepo) Save(ctx context.Context, tx dbx.Transaction, user *biz.User) error {
 	query := `select * from user where user_id = ? for update`
-	err := tx.GetContext(ctx, u, query, user.UserID)
+	err := tx.GetContext(ctx, user, query, user.UserID)
 	if err == nil {
 		return nil
 	}

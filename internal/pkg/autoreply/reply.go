@@ -46,6 +46,10 @@ type Replies map[string]map[string]ReplyRow
 
 var repliesValue atomic.Value
 
+func init() {
+	repliesValue.Store(Replies{})
+}
+
 func RefreshReplies(r Replies) {
 	repliesValue.Store(r)
 }

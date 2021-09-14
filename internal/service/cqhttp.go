@@ -27,6 +27,10 @@ type EventServer struct {
 	biz *biz.EventUseCase
 }
 
+func (s EventServer) Ping() {
+	keepalive.CQHeartBeat()
+}
+
 // Event 文档 https://github.com/ishkong/go-cqhttp-docs/tree/main/docs/event
 func (s EventServer) Event(ctx context.Context, m api.QMessage) (api.Reply, error) {
 	if m.PostType == PTEvent {

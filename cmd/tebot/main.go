@@ -59,7 +59,7 @@ func main() {
 	// 启动WEB服务
 	gin.SetMode(gin.DebugMode)
 	e := gin.Default()
-	api.RegisterServer(e, service.NewEventServer(data.NewEventRepo()))
+	api.RegisterCQWSServer(e, service.NewEventServer(data.NewEventRepo()))
 	if err := e.Run(viper.GetString("Server.Addr")); err != nil {
 		logrus.Panicf("service run error %v\n", err)
 	}

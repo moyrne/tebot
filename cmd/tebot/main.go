@@ -2,12 +2,9 @@ package main
 
 import (
 	"context"
+	_ "net/http/pprof"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/moyrne/tebot/internal/pkg/logs"
-	"github.com/moyrne/tebot/internal/pkg/ratelimit"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"github.com/gin-gonic/gin"
 	"github.com/moyrne/tebot/api"
@@ -16,7 +13,11 @@ import (
 	"github.com/moyrne/tebot/internal/data"
 	"github.com/moyrne/tebot/internal/database"
 	"github.com/moyrne/tebot/internal/pkg/keepalive"
+	"github.com/moyrne/tebot/internal/pkg/logs"
+	"github.com/moyrne/tebot/internal/pkg/ratelimit"
 	"github.com/moyrne/tebot/internal/service"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func main() {
@@ -59,7 +60,7 @@ func main() {
 	// 启动WEB服务
 	gin.SetMode(gin.DebugMode)
 	e := gin.Default()
-	api.RegisterCQWSServer(e, service.NewEventServer(data.NewEventRepo()))
+	api.RegisterCQServer(e, service.NewEventServer(data.NewEventRepo()))
 	if err := e.Run(viper.GetString("Server.Addr")); err != nil {
 		logrus.Panicf("service run error %v\n", err)
 	}

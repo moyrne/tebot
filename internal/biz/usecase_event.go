@@ -103,13 +103,14 @@ func (uc *EventUseCase) Event(ctx context.Context, m *Message) (reply EventReply
 	}
 
 	reply.Reply, err = uc.doEvent(ctx, m)
-	if err != nil {
-		return reply, err
-	}
 
-	err = database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
+	logrus.Infof("do event reply %s\n", reply.Reply)
+
+	if err := database.NewTransaction(ctx, func(ctx context.Context, tx dbx.Transaction) error {
 		return uc.repo.SetMessageReply(ctx, tx, m.ID, reply.Reply)
-	})
+	}); err != nil {
+		logrus.Errorf("event reply save error %v\n", err)
+	}
 
 	return reply, err
 }
@@ -117,7 +118,6 @@ func (uc *EventUseCase) Event(ctx context.Context, m *Message) (reply EventReply
 func (uc *EventUseCase) doEvent(ctx context.Context, m *Message) (string, error) {
 	// 等待3秒 回复
 	defer time.Sleep(time.Second * 2)
-	defer logrus.Infof("do event reply %s\n", m.Reply)
 
 	// 匹配简单回复
 	return autoreply.Reply(ctx, &autoreply.Message{

@@ -81,7 +81,7 @@ func rangeReply(ctx context.Context, replies map[string]ReplyRow, m *Message) (s
 	for msg, reply := range replies {
 		mts := strings.Split(reply.Matches, ",")
 		for _, match := range mts {
-			if matches[match](m.Message, msg) {
+			if mfn, ok := matches[match]; ok && mfn(m.Message, msg) {
 				if fn, ok := functions[reply.Function]; ok {
 					return fn(ctx, m)
 				}

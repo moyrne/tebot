@@ -8,7 +8,7 @@ import (
 
 type Reply struct {
 	ID      int64  `json:"id"`
-	UserID  int64  `json:"user_id"`
+	UserID  int64  `json:"user_id" db:"user_id"`
 	Msg     string `json:"msg"`     // 前缀搜索
 	Matches string `json:"matches"` // TODO 可保存多个，使用','隔开
 

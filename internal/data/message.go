@@ -29,7 +29,7 @@ func (q messageRepo) Save(ctx context.Context, tx dbx.Transaction, m *biz.Messag
 }
 
 func (q messageRepo) SetReply(ctx context.Context, tx dbx.Transaction, id int64, reply string) error {
-	query := `update q_message set reply = ? where id = ?`
+	query := `update message set reply = ? where id = ?`
 	r, err := tx.ExecContext(ctx, query, reply, id)
 	if err != nil {
 		return errors.WithStack(err)

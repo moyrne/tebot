@@ -9,7 +9,7 @@ import (
 
 type SignIn struct {
 	ID       int64     `json:"id"`
-	UserID   int64     `json:"user_id"`
+	UserID   int64     `json:"user_id" db:"user_id"`
 	Day      string    `json:"day"`
 	CreateAt time.Time `json:"create_at" db:"create_at"`
 }

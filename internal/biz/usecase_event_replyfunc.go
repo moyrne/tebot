@@ -92,9 +92,10 @@ func SignInMethod(uc *EventUseCase) func(ctx context.Context, m *autoreply.Messa
 		// TODO 缓存天气
 		wt, err := weComCn.Get(area)
 		if err != nil {
-			return "", err
+			return "", errors.WithStack(err)
 		}
-		return signInTemp.Execute(signParam(wt))
+		reply, err := signInTemp.Execute(signParam(wt))
+		return reply, errors.WithStack(err)
 	}
 }
 

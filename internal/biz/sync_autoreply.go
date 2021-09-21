@@ -51,8 +51,10 @@ func delaySync(ctx context.Context, repo ReplyRepo) {
 			continue
 		}
 		repliesMap[userID][reply.Msg] = autoreply.ReplyRow{
-			Msg:     reply.Msg,
-			Replies: r,
+			Msg:      reply.Msg,
+			Matches:  reply.Matches,
+			Function: reply.Function,
+			Replies:  r,
 		}
 	}
 	// copy on write

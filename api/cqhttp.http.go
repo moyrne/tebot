@@ -12,7 +12,7 @@ type CQServer interface {
 }
 
 func RegisterCQServer(e *gin.Engine, server CQServer) {
-	e.POST("/", func(c *gin.Context) {
+	e.POST("/event", func(c *gin.Context) {
 		var message QMessage
 		if err := c.BindJSON(&message); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "json unmarshal failed"})

@@ -10,7 +10,7 @@ import (
 // User QQ User
 type User struct {
 	ID       int64  `json:"id"`
-	UserID   int64  `json:"user_id"`
+	UserID   int64  `json:"user_id" db:"user_id"`
 	Nickname string `json:"nickname"`
 	Sex      string `json:"sex"`
 	Age      int    `json:"age"`

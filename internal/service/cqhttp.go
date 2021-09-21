@@ -47,6 +47,9 @@ func (s EventServer) Event(ctx context.Context, m api.QMessage) (api.Reply, erro
 
 	// 优先提供服务 记录失败忽略
 	reply, err := s.biz.Event(ctx, ToQMessage(m))
+	if err != nil {
+		logrus.Errorf("event error %v", err)
+	}
 	return api.Reply{Reply: reply.Reply, ATSender: reply.ATSender}, err
 }
 
